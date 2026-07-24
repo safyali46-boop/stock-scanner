@@ -1,11 +1,9 @@
-
 name: YouTube to Scanner Auto Bot
 
 on:
   schedule:
-    # بيشتغل أوتوماتيك كل نص ساعة
     - cron: '*/30 * * * *'
-  workflow_dispatch: # زرار للتشغيل اليدوي
+  workflow_dispatch:
 
 jobs:
   run-bot:
@@ -19,11 +17,6 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Run YouTube processing script
-        run: python youtube_scanner.py
       - name: Install dependencies
         run: pip install requests
 
