@@ -1,24 +1,32 @@
-name: YouTube to Scanner Auto Bot
+import requests
+import json
 
-on:
-  schedule:
-    - cron: '*/30 * * * *'
-  workflow_dispatch:
+# رابط السيرفر الأساسي بتاعك على ريلواي
+WEBHOOK_URL = "https://stock-scanner-production-dd80.up.railway.app/api/webhook-update"
 
-jobs:
-  run-bot:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+def process_video_transcript():
+    # هنا هنبدأ نستقبل ونحدث الأسهم الحقيقية بناءً على الشغل اللي محتاجه
+    extracted_stocks = [
+        {
+            "symbol": "DICE",
+            "name": "سهم دايس للصناعات النسيجية",
+            "price": "2.05",
+            "demand": "قوي",
+            "supply": "متوسط",
+            "liquidity": "عالية",
+            "analysis": "متابعة نقطة الدخول عند 2.05 والمقاومات الحالية",
+            "news": "تحديث تلقائي من أداة المتابعة والتحليل",
+            "market": "EGX",
+            "source": "Auto Scanner Bot"
+        }
+    ]
+    
+    for stock in extracted_stocks:
+        try:
+            response = requests.post(WEBHOOK_URL, json=stock)
+            print(f"تم إرسال السهم {stock['symbol']} للسكنر، الحالة: {response.status_code}")
+        except Exception as e:
+            print(f"خطأ في الاتصال بالسيرفر: {e}")
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Run YouTube processing script
-        run: python youtube_scanner.py
+if __name__ == "__main__":
+    process_video_transcript()
