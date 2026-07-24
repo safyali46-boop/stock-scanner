@@ -3,7 +3,6 @@ import os
 
 app = Flask(__name__)
 
-# قواعد البيانات منفصلة لكل قسم لتشغيل السكنر والبحث بكفاءة تامة
 scanner_live_signals = [
     {
         "source": "Auto Scanner", 
@@ -77,7 +76,6 @@ INDEX_HTML = """
         <button class="tab-btn" onclick="switchTab('currencies', this)">💱 العملات والسيولة</button>
     </div>
 
-    <!-- قسم السكنر -->
     <div id="scanner" class="section-content active">
         <h3 style="color: #38bdf8;">إشارات السكنر اللحظي (تحديث آلي)</h3>
         <table>
@@ -97,13 +95,11 @@ INDEX_HTML = """
         </table>
     </div>
 
-    <!-- قسم الأسهم -->
     <div id="us-stocks" class="section-content">
         <h3 style="color: #38bdf8;">قائمة الأسهم والشروط المعتمدة</h3>
         <div id="stocksList"></div>
     </div>
 
-    <!-- قسم العملات -->
     <div id="currencies" class="section-content">
         <h3 style="color: #38bdf8;">متابعة العملات والأسواق العالمية</h3>
         <div id="forexList"></div>
@@ -111,7 +107,6 @@ INDEX_HTML = """
 
 </div>
 
-<!-- نافذة التفاصيل والأخبار -->
 <div id="stockModal" class="modal">
     <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">إغلاق</button>
@@ -285,7 +280,6 @@ def webhook_update():
             "market": incoming_data.get("market", "US")
         }
         scanner_live_signals.append(new_item)
-        # إضافتها لقاعدة بيانات الأصول أيضاً لتظهر في البحث فوراً
         if not any(a['symbol'] == new_item['symbol'] for a in all_assets_database):
             all_assets_database.append(new_item)
             
