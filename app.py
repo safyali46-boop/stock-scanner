@@ -3,10 +3,44 @@ import os
 
 app = Flask(__name__)
 
+# قاعدة بيانات متكاملة تشمل السكنر، الأسهم الأمريكية، المصرية، والعملات مع بيانات وأخبار لكل أصل
 live_scanner_data = [
-    {"source": "Auto Scanner", "symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "اختراق قمة الجلسة وطلب قوي", "market": "US"},
-    {"source": "EGX Live", "symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "demand": "15K", "supply": "5K", "liquidity": "متوسطة", "analysis": "نشاط السوق المصري وعروض شراء", "market": "EG"},
-    {"source": "Forex Bot", "symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب حول مستويات الدعم", "market": "Forex"}
+    {
+        "source": "Auto Scanner", 
+        "symbol": "NVDA", 
+        "name": "إنيديا", 
+        "price": "130.20", 
+        "demand": "50K", 
+        "supply": "20K", 
+        "liquidity": "عالية جداً", 
+        "analysis": "رصد آلي: اختراق قمة الجلسة وطلب مؤسسي قوي.",
+        "news": "إنيديا تعلن عن رقائق جديدة بمعمارية متطورة وسط طلب قياسي من مراكز البيانات.",
+        "market": "US"
+    },
+    {
+        "source": "EGX Live", 
+        "symbol": "DICE", 
+        "name": "دايس للصناعات", 
+        "price": "2.05", 
+        "demand": "15K", 
+        "supply": "5K", 
+        "liquidity": "متوسطة", 
+        "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند مستويات الدعم.",
+        "news": "تداولات نشطة على سهم دايس للصناعات المتجذرة وسط ترقب لنتائج الأعمال الفصلية.",
+        "market": "EG"
+    },
+    {
+        "source": "Forex Bot", 
+        "symbol": "EURUSD", 
+        "name": "اليورو دولار", 
+        "price": "1.0850", 
+        "demand": "100K", 
+        "supply": "90K", 
+        "liquidity": "عالية", 
+        "analysis": "تذبذب عرضي حول مستويات الدعم مع سيولة مؤسسية متوازنة.",
+        "news": "الأسواق تترقب بيانات التضخم الأمريكية وتأثيرها المباشر على تحركات زوج اليورو دولار.",
+        "market": "Forex"
+    }
 ]
 
 INDEX_HTML = """
@@ -15,7 +49,7 @@ INDEX_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق التداول الشامل</title>
+    <title>منصة التداول المتكاملة</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
         .container { max-width: 1100px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
@@ -44,14 +78,15 @@ INDEX_HTML = """
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
         .modal-content { background-color: #1e293b; padding: 25px; border-radius: 10px; width: 500px; max-width: 90%; border: 1px solid #334155; text-align: right; }
         .close-btn { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; float: left; font-weight: bold; }
-        .card { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; }
+        .card { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .card:hover { border-color: #38bdf8; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>منصة التداول المتكاملة</h1>
-    <p class="subtitle">السكنر اللحظي، الأسهم الأمريكية والمصرية، والعملات مع البحث المباشر</p>
+    <p class="subtitle">السكنر اللحظي، الأسهم والأصول المعتمدة مع الأخبار والتحليلات</p>
     
     <!-- خانة البحث الشاملة -->
     <div class="search-box">
@@ -65,7 +100,7 @@ INDEX_HTML = """
         <button class="tab-btn" onclick="switchTab('currencies', this)">💱 العملات والسيولة</button>
     </div>
 
-    <!-- قسم السكنر اللحظي والبحث العام -->
+    <!-- قسم السكنر اللحظي -->
     <div id="scanner" class="section-content active">
         <h3 style="color: #38bdf8;">إشارات السكنر والأسواق المباشرة</h3>
         <table>
@@ -78,7 +113,7 @@ INDEX_HTML = """
                     <th>الطلب</th>
                     <th>العرض</th>
                     <th>السيولة</th>
-                    <th>التحليل والشروط</th>
+                    <th>التحليل السريع</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -87,40 +122,35 @@ INDEX_HTML = """
         </table>
     </div>
 
-    <!-- قسم الشروط والتفاصيل للأسهم -->
+    <!-- قسم الأسهم الأمريكية والمصرية -->
     <div id="us-stocks" class="section-content">
-        <h3 style="color: #38bdf8;">شروط القبول والتحليل الفني</h3>
-        <div class="card">
-            <h4 style="color: #22c55e; margin-top:0;">شروط الأسهم الأمريكية والمصرية المعتمدة:</h4>
-            <ul style="color: #94a3b8; font-size: 14px; line-height: 1.6;">
-                <li>رصد تدفقات السيولة العالية والطلبات المؤسسية اللحظية.</li>
-                <li>اختراق مستويات المقاومة الرئيسية أو قمم الجلسة.</li>
-                <li>توافق مؤشرات الزخم الملحوظة مع عروض الشراء والبيع.</li>
-            </ul>
+        <h3 style="color: #38bdf8;">قائمة الأسهم والشروط المعتمدة</h3>
+        <div id="stocksList">
+            <!-- سيتم تعبئتها ديناميكياً لتفعيل الضغط والأخبار -->
         </div>
     </div>
 
     <!-- قسم العملات -->
     <div id="currencies" class="section-content">
         <h3 style="color: #38bdf8;">متابعة العملات والأسواق العالمية</h3>
-        <div class="card">
-            <p style="color: #94a3b8;">رصد تحركات أزواج العملات الرئيسية وتحديثات السيولة اللحظية المرتبطة بها وشروط التداول الخاصة بها.</p>
+        <div id="forexList">
+            <!-- سيتم تعبئتها ديناميكياً لتفعيل الضغط والأخبار -->
         </div>
     </div>
 
 </div>
 
-<!-- نافذة عرض تفاصيل الأخبار والتحليل عند الضغط على السهم -->
+<!-- نافذة عرض تفاصيل الأخبار والتحليل عند الضغط على أي أصل -->
 <div id="stockModal" class="modal">
     <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">إغلاق</button>
         <h2 id="modalSymbol" style="color: #38bdf8; margin-top: 0;"></h2>
-        <p><b>الاسم / الرمز:</b> <span id="modalName"></span></p>
+        <p><b>الاسم / الرمز:</b> <span id="modalName"></span> | <b>السعر:</b> <span id="modalPrice"></span></p>
         <hr style="border-color: #334155;">
-        <h3 style="color: #22c55e; font-size: 16px;">أحدث الأخبار:</h3>
-        <p id="modalNews" style="color: #94a3b8; font-size: 14px;">جاري جلب أحدث الأخبار المرتبطة بالسهم...</p>
+        <h3 style="color: #22c55e; font-size: 16px;">أحدث الأخبار والتقارير:</h3>
+        <p id="modalNews" style="color: #94a3b8; font-size: 14px; line-height: 1.5;"></p>
         <h3 style="color: #38bdf8; font-size: 16px;">التحليل الفني والشروط:</h3>
-        <p id="modalAnalysis" style="color: #f8fafc; font-size: 14px;"></p>
+        <p id="modalAnalysis" style="color: #f8fafc; font-size: 14px; line-height: 1.5;"></p>
     </div>
 </div>
 
@@ -150,7 +180,7 @@ INDEX_HTML = """
         try {
             const response = await fetch('/api/live-data');
             globalData = await response.json();
-            renderTable(globalData);
+            renderAllSections(globalData);
 
             if (globalData.length > lastCount && lastCount > 0) {
                 const latest = globalData[globalData.length - 1];
@@ -163,16 +193,26 @@ INDEX_HTML = """
         }
     }
 
-    function renderTable(data) {
+    function renderAllSections(data) {
+        // جدول السكنر
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         
+        // قسم الأسهم والشروط
+        const stocksDiv = document.getElementById('stocksList');
+        stocksDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المتاحة (اضغط على السهم لعرض الأخبار والشروط):</h4>';
+        
+        // قسم العملات
+        const forexDiv = document.getElementById('forexList');
+        forexDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">أزواج العملات (اضغط على العملة لعرض التحليل والأخبار):</h4>';
+
         if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8">لا توجد نتائج مطابقة للبحث...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8">لا توجد بيانات مطابقة...</td></tr>';
             return;
         }
 
         data.forEach((item) => {
+            // إضافة الجدول الرئيسي
             const row = `<tr onclick='openModal(${JSON.stringify(item)})'>
                 <td><span class="badge">${item.source}</span></td>
                 <td><b>${item.symbol}</b></td>
@@ -184,27 +224,43 @@ INDEX_HTML = """
                 <td>${item.analysis}</td>
             </tr>`;
             tbody.innerHTML += row;
+
+            // تصنيف العناصر حسب السوق داخل الأقسام الأخرى لتعمل بكفاءة
+            const cardHTML = `<div class="card" onclick='openModal(${JSON.stringify(item)})'>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b style="color: #38bdf8; font-size: 16px;">${item.symbol} - ${item.name}</b>
+                    <span class="badge">السعر: ${item.price}</span>
+                </div>
+                <p style="color: #94a3b8; font-size: 13px; margin: 8px 0 0 0;"><b>التحليل:</b> ${item.analysis}</p>
+            </div>`;
+
+            if (item.market === 'Forex') {
+                forexDiv.innerHTML += cardHTML;
+            } else {
+                stocksDiv.innerHTML += cardHTML;
+            }
         });
     }
 
     function filterData() {
         const query = document.getElementById('globalSearch').value.toLowerCase().trim();
         if (!query) {
-            renderTable(globalData);
+            renderAllSections(globalData);
             return;
         }
         const filtered = globalData.filter(item => 
             item.symbol.toLowerCase().includes(query) || 
             item.name.toLowerCase().includes(query)
         );
-        renderTable(filtered);
+        renderAllSections(filtered);
     }
 
     function openModal(item) {
         document.getElementById('modalSymbol').innerText = item.symbol;
         document.getElementById('modalName').innerText = item.name;
-        document.getElementById('modalAnalysis').innerText = item.analysis;
-        document.getElementById('modalNews').innerText = "تم رصد تفاعل قوي وأحدث الأخبار المرتبطة بهذا الأصل وفقاً لتحديثات البث اللحظي.";
+        document.getElementById('modalPrice').innerText = item.price;
+        document.getElementById('modalNews').innerText = item.news || "لا توجد أخبار عاجلة مسجلة لهذا الأصل حتى اللحظة.";
+        document.getElementById('modalAnalysis').innerText = item.analysis || "تحت الفحص وفقاً لشروط السوق والسيولة.";
         document.getElementById('stockModal').style.display = 'flex';
     }
 
@@ -241,6 +297,7 @@ def webhook_update():
             "supply": incoming_data.get("supply", "0"),
             "liquidity": incoming_data.get("liquidity", "عادية"),
             "analysis": incoming_data.get("analysis", "تحديث آلي مباشر مع الشروط"),
+            "news": incoming_data.get("news", "أخبار فورية مرصودة من البث والسكنر."),
             "market": incoming_data.get("market", "US")
         })
         return jsonify({"status": "success"}), 200
