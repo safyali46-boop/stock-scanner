@@ -19,10 +19,12 @@ scanner_live_signals = [
 ]
 
 all_assets_database = [
-    {"symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.", "news": "إنيديا تعلن عن رقائق جديدة.", "market": "US"},
-    {"symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "demand": "15K", "supply": "5K", "liquidity": "متوسطة", "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند الدعم.", "news": "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "market": "EG"},
-    {"symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب عرضي حول مستويات الدعم.", "news": "الأسواق تترقب بيانات التضخم الأمريكية.", "market": "Forex"},
-    {"symbol": "GBPUSD", "name": "السترليني دولار", "price": "1.2650", "demand": "80K", "supply": "70K", "liquidity": "عالية", "analysis": "ثبات أعلى مستويات الدعم الرئيسية.", "news": "تطورات اقتصادية هامة تؤثر على الاسترليني.", "market": "Forex"}
+    {"symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.", "news": "إنيديا تعلن عن رقائق جديدة وسط طلب قياسي.", "market": "US"},
+    {"symbol": "AAPL", "name": "آبل", "price": "185.50", "demand": "80K", "supply": "30K", "liquidity": "عالية جداً", "analysis": "ثبات أعلى الدعم مع ضغط شرایی مؤسسي.", "news": "آبل تسجل إيرادات فصلية قياسية.", "market": "US"},
+    {"symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "demand": "15K", "supply": "5K", "liquidity": "متوسطة", "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند مستويات الدعم.", "news": "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "market": "EG"},
+    {"symbol": "COMI", "name": "البنك التجاري الدولي", "price": "80.00", "demand": "120K", "supply": "40K", "liquidity": "عالية جداً", "analysis": "اتجاه صاعد واستقرار للسيولة المؤسسية.", "news": "البنك يعلن عن توزيعات نقدية مرتقبة.", "market": "EG"},
+    {"symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب عرضي حول مستويات الدعم مع سيولة متوازنة.", "news": "الأسواق تترقب بيانات التضخم الأمريكية.", "market": "Forex"},
+    {"symbol": "GBPUSD", "name": "السترليني دولار", "price": "1.2650", "demand": "80K", "supply": "70K", "liquidity": "عالية", "analysis": "ثبات أعلى مستويات الدعم الرئيسية للفنيات.", "news": "تطورات اقتصادية هامة تؤثر على زوج الاسترليني.", "market": "Forex"}
 ]
 
 INDEX_HTML = """
@@ -68,12 +70,12 @@ INDEX_HTML = """
     <p class="subtitle">السكنر اللحظي، الأسهم، والعملات مع محرك البحث الشامل</p>
     
     <div class="search-box">
-        <input type="text" id="globalSearch" placeholder="ابحث برمز العملة أو السهم (مثال: EURUSD, NVDA, دايس)..." oninput="filterData()">
+        <input type="text" id="globalSearch" placeholder="ابحث برمز العملة أو السهم (مثال: EURUSD, دايس, COMI)..." oninput="filterData()">
     </div>
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 السكنر اللحظي</button>
-        <button class="tab-btn" onclick="switchTab('us-stocks', this)">🇺🇸 الأسهم الأمريكية والمصرية</button>
+        <button class="tab-btn" onclick="switchTab('us-stocks', this)">🇺🇸 والأسهم المصرية والعالمية</button>
         <button class="tab-btn" onclick="switchTab('currencies', this)">💱 العملات والسيولة</button>
     </div>
 
@@ -114,6 +116,8 @@ INDEX_HTML = """
         <h2 id="modalSymbol" style="color: #38bdf8; margin-top: 0;"></h2>
         <p><b>الاسم / الرمز:</b> <span id="modalName"></span> | <b>السعر:</b> <span id="modalPrice"></span></p>
         <hr style="border-color: #334155;">
+        <h3 style="color: #22c55e; font-size: 16px;">الطلب والعرض والسيولة:</h3>
+        <p id="modalSupplyDemand" style="color: #f8fafc; font-size: 14px;"></p>
         <h3 style="color: #22c55e; font-size: 16px;">أحدث الأخبار والتقارير:</h3>
         <p id="modalNews" style="color: #94a3b8; font-size: 14px; line-height: 1.5;"></p>
         <h3 style="color: #38bdf8; font-size: 16px;">التحليل الفني والشروط:</h3>
@@ -228,8 +232,9 @@ INDEX_HTML = """
         document.getElementById('modalSymbol').innerText = item.symbol;
         document.getElementById('modalName').innerText = item.name;
         document.getElementById('modalPrice').innerText = item.price;
+        document.getElementById('modalSupplyDemand').innerHTML = `حجم الطلب: <span style="color: #22c55e;">${item.demand || 'N/A'}</span> | حجم العرض: <span style="color: #ef4444;">${item.supply || 'N/A'}</span> | السيولة: <b>${item.liquidity || 'عادية'}</b>`;
         document.getElementById('modalNews').innerText = item.news || "لا توجد أخبار عاجلة مسجلة لهذا الأصل.";
-        document.getElementById('modalAnalysis').innerText = item.analysis || "تحت الفحص وفقاً لشروط السوق.";
+        document.getElementById('modalAnalysis').innerText = item.analysis || "تحت الفحص وفقاً لشروط السوق والسيولة.";
         document.getElementById('stockModal').style.display = 'flex';
     }
 
