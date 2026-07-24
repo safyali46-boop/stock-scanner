@@ -10,7 +10,6 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # جدول الأصول الموحد لكل الأسواق والسكنر
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS assets (
             symbol TEXT PRIMARY KEY,
@@ -26,7 +25,6 @@ def init_db():
         )
     ''')
     
-    # جدول المستخدمين للدخول أو التسجيل
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,25 +37,13 @@ def init_db():
         INSERT OR IGNORE INTO users (identifier, password) VALUES (?, ?)
     ''', ("admin@trading.com", "123456"))
 
-    # عينة من الأسهم الأمريكية (تحت 50 دولار) ومصرية وعملات ومعادن كمخزون ابتدائي
+    # عينة بيانات افتراضية أولية
     default_data = [
-        # الأسهم الأمريكية (حتى 50 دولار) مع تفاصيل التحليل الفني
         ("NIO", "نيو للسيارات", "5.40", "45K", "15K", "عالية", "موجي: قاع صاعد | موفينج: تقاطع إيجابي | ماكد: صاعد | رقمي: دعم قوي | فيبو: تصحيح 61.8%", "زيادة تسليمات السيارات الكهربائية.", "US_STOCKS", "Assets"),
         ("F", "فورد موتورز", "11.80", "60K", "25K", "عالية", "موجي: موجة 3 دافعة | موفينج: فوق 50 | ماكد: إيجابي | رقمي: ثبات فوق 11 | فيبو: ارتداد من 38.2%", "توسعات جديدة في قطاع البطاريات.", "US_STOCKS", "Assets"),
-        ("SOFI", "سوفي تكنولوجيز", "7.60", "75K", "20K", "عالية", "موجي: نهاية تصحيح | موفينج: تقاطع ذهبي | ماكد: تقاطع إيجابي | رقمي: مقاومة مختترقة | فيبو: هدف 50%", "نتائج أعمال فصلية ممتازة.", "US_STOCKS", "Assets"),
-        ("PLTR", "بالانتير", "24.10", "150K", "40K", "عالية جداً", "موجي: اندفاع قوي | موفينج: ترند صاعد | ماكد: زخم عالي | رقمي: صدارة السيولة | فيبو: امتداد 1.618", "عقود دفاعية جديدة ضخمة.", "US_STOCKS", "Assets"),
-        ("INTC", "إنتل", "21.30", "110K", "50K", "عالية جداً", "موجي: قاع تاريخي | موفينج: قرب المتوسط | ماكد: ارتداد | رقمي: دعم 20 | فيبو: دعم رئيسي", "دعم حكومي لقطاع الرقائق.", "US_STOCKS", "Assets"),
-        
-        # الأسهم المصرية (EGX)
         ("DICE", "دايس للصناعات", "2.05", "15K", "5K", "متوسطة", "موجي: تجميع صاعد | موفينج: استقرار | ماكد: محايد | رقمي: دعم 2.00 | فيبو: ارتداد 50%", "نشاط تداولات ترقب لنتائج الأعمال.", "EGX", "Assets"),
         ("COMI", "البنك التجاري الدولي", "80.00", "120K", "40K", "عالية جداً", "موجي: موجة رئيسية صاعدة | موفينج: ترتيب إيجابي | ماكد: صاعد | رقمي: قمة جديدة | فيبو: استقرار", "توزيعات نقدية مرتقبة.", "EGX", "Assets"),
-        ("PHDC", "بالم هيلز", "5.80", "50K", "15K", "عالية", "موجي: اختراق قناة | موفينج: فوق المتوسطات | ماكد: إيجابي | رقمي: مقاومة 5.70 | فيبو: هدف 6.20", "مبيعات عقارية قياسية.", "EGX", "Assets"),
-
-        # العملات والفوركس
-        ("EURUSD", "اليورو دولار", "1.0850", "100K", "90K", "عالية", "موجي: عرضي متماسك | موفينج: تداخل | ماكد: هادئ | رقمي: دعم 1.08 | فيبو: 50% ريتارسمينت", "ترقب بيانات التضخم الأمريكية.", "FOREX", "Assets"),
-        ("GBPUSD", "السترليني دولار", "1.2650", "80K", "70K", "عالية", "موجي: صاعد تدريجي | موفينج: إيجابي | ماكد: صاعد | رقمي: دعم 1.26 | فيبو: هدف 1.275", "بيانات اقتصادية بريطانية قوية.", "FOREX", "Assets"),
-
-        # المعادن (الذهب والفضة)
+        ("EURUSD", "اليورو دولار", "1.0850", "100K", "90K", "عالية", "موجي: عرضي متماسك | موفينج: تداخل | ماكد: هادئ | رقمي: دعم 1.08 | فيبو: 50%", "ترقب بيانات التضخم الأمريكية.", "FOREX", "Assets"),
         ("XAUUSD", "الذهب (Gold)", "2380.00", "500K", "200K", "عالية جداً", "موجي: موجة 5 صاعدة | موفينج: دعم قوي | ماكد: زخم إيجابي | رقمي: دعم 2350 | فيبو: امتداد تاريخي", "توترات جيوستراتيجية تدعم الملاذ الآمن.", "METALS", "Assets")
     ]
     
@@ -180,26 +166,25 @@ INDEX_HTML = """
     <div class="header-flex">
         <div>
             <h1>منصة السكنر الشاملة</h1>
-            <p class="subtitle">السكنر الخارجي اللحظي، الأسهم الأمريكية (حتى 50$)، المصرية، العملات، والمعادن</p>
+            <p class="subtitle">سكنر التنبيهات (TradingView & YouTube: زيندو وأركان)، والأسواق المختلفة</p>
         </div>
         <a href="/logout"><button class="logout-btn">تسجيل الخروج</button></a>
     </div>
     
     <div class="search-box">
-        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم أو الاسم في كل الأسواق (مثال: NIO, دايس, EURUSD, XAUUSD)..." oninput="filterData()">
+        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم أو الاسم في كل الأسواق..." oninput="filterData()">
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 سكنر الإشارات الخارجية</button>
+        <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 سكنر الإشارات الخارجية (TradingView & YouTube)</button>
         <button class="tab-btn" onclick="switchTab('us-stocks', this)">🇺🇸 الأسهم الأمريكية (&lt;50$)</button>
         <button class="tab-btn" onclick="switchTab('egypt-stocks', this)">🇪🇬 البورصة المصرية</button>
         <button class="tab-btn" onclick="switchTab('forex', this)">💱 العملات (Forex)</button>
         <button class="tab-btn" onclick="switchTab('metals', this)">🪙 المعادن والسلع</button>
     </div>
 
-    <!-- تبيوب السكنر الخارجي -->
     <div id="scanner" class="section-content active">
-        <h3 style="color: #38bdf8;">إشارات السكنر الخارجي (تحديث آلي لآخر اليوم)</h3>
+        <h3 style="color: #38bdf8;">إشارات السكنر اللحظي الواردة من (TradingView وقنوات اليوتيوب)</h3>
         <table>
             <thead>
                 <tr>
@@ -210,32 +195,28 @@ INDEX_HTML = """
                     <th>الطلب</th>
                     <th>العرض</th>
                     <th>السيولة</th>
-                    <th>التحليل الشامل</th>
+                    <th>التحليل الفني</th>
                 </tr>
             </thead>
             <tbody id="scannerTableBody"></tbody>
         </table>
     </div>
 
-    <!-- تبويب الأسهم الأمريكية -->
     <div id="us-stocks" class="section-content">
         <h3 style="color: #38bdf8;">الأسهم الأمريكية (حتى 50 دولار)</h3>
         <div id="usList"></div>
     </div>
 
-    <!-- تبويب البورصة المصرية -->
     <div id="egypt-stocks" class="section-content">
         <h3 style="color: #38bdf8;">الأسهم والبورصة المصرية (EGX)</h3>
         <div id="egyptList"></div>
     </div>
 
-    <!-- تبويب العملات -->
     <div id="forex" class="section-content">
         <h3 style="color: #38bdf8;">أزواج العملات (Forex)</h3>
         <div id="forexList"></div>
     </div>
 
-    <!-- تبويب المعادن -->
     <div id="metals" class="section-content">
         <h3 style="color: #38bdf8;">المعادن والسلع (Metals)</h3>
         <div id="metalsList"></div>
@@ -243,18 +224,17 @@ INDEX_HTML = """
 
 </div>
 
-<!-- نافذة التفاصيل الشاملة (التحليل الموجي، موفينج، ماكد، رقمي، فيبو، الأخبار) -->
 <div id="stockModal" class="modal">
     <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">إغلاق</button>
         <h2 id="modalSymbol" style="color: #38bdf8; margin-top: 0;"></h2>
         <p><b>الاسم:</b> <span id="modalName"></span> | <b>السعر:</b> <span id="modalPrice"></span></p>
         <hr style="border-color: #334155;">
-        <h3 style="color: #22c55e; font-size: 15px;">حجم الطلب والعرض والسيولة:</h3>
+        <h3 style="color: #22c55e; font-size: 15px;">الطلب والعرض والسيولة:</h3>
         <p id="modalSupplyDemand" style="color: #f8fafc; font-size: 13px;"></p>
-        <h3 style="color: #38bdf8; font-size: 15px;">التحليل الفني المتقدم (موجي، موفينج، ماكد، رقمي، فيبو):</h3>
+        <h3 style="color: #38bdf8; font-size: 15px;">التحليل الفني الشامل (موجي، موفينج، ماكد، رقمي، فيبو):</h3>
         <p id="modalAnalysis" style="color: #f8fafc; font-size: 13px; line-height: 1.6; background: #0f172a; padding: 10px; border-radius: 6px;"></p>
-        <h3 style="color: #eab308; font-size: 15px;">الأخبار العاجلة والأسباب:</h3>
+        <h3 style="color: #eab308; font-size: 15px;">الأخبار العاجلة ومصدر التنبيه:</h3>
         <p id="modalNews" style="color: #94a3b8; font-size: 13px; line-height: 1.5;"></p>
     </div>
 </div>
@@ -305,7 +285,6 @@ INDEX_HTML = """
         }
 
         data.forEach((item) => {
-            // كل إشارة واردة من السكنر الخارجي أو مسجلة تظهر في جدول السكنر الموحد
             scannerTbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
                 <td><span class="badge">${item.source || 'Scanner'}</span></td>
                 <td><b>${item.symbol}</b></td>
@@ -323,7 +302,7 @@ INDEX_HTML = """
                     <b style="color: #38bdf8; font-size: 15px;">${item.symbol} - ${item.name}</b>
                     <span class="badge">السعر: ${item.price}</span>
                 </div>
-                <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0 0;"><b>التحليل الشامل:</b> ${item.analysis}</p>
+                <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0 0;"><b>التحليل:</b> ${item.analysis}</p>
             </div>`;
 
             if (item.market === 'US_STOCKS') {
@@ -339,7 +318,6 @@ INDEX_HTML = """
                 metalsDiv.innerHTML += cardHTML;
                 hasMetals = true;
             } else {
-                // إذا جاء سهم عام من السكنر الخارجي يضاف افتراضياً للأمريكي أو العام
                 usDiv.innerHTML += cardHTML;
                 hasUS = true;
             }
@@ -373,7 +351,7 @@ INDEX_HTML = """
         document.getElementById('modalPrice').innerText = item.price;
         document.getElementById('modalSupplyDemand').innerHTML = `الطلب: <span style="color: #22c55e;">${item.demand || 'N/A'}</span> | العرض: <span style="color: #ef4444;">${item.supply || 'N/A'}</span> | السيولة: <b>${item.liquidity || 'عادية'}</b>`;
         document.getElementById('modalAnalysis').innerText = item.analysis || "تحت الفحص الفني الشامل.";
-        document.getElementById('modalNews').innerText = item.news || "لا توجد أخبار مسجلة حالياً لهذا الأصل.";
+        document.getElementById('modalNews').innerText = item.news || "لا توجد تفاصيل إضافية مسجلة.";
         document.getElementById('stockModal').style.display = 'flex';
     }
 
@@ -407,7 +385,7 @@ def login():
             session['user'] = identifier
             return redirect(url_for('home'))
         else:
-            error = "بيانات الدخول غير صحيحة. تأكد من البريد/الهاتف وكلمة المرور."
+            error = "بيانات الدخول غير صحيحة."
     return render_template_string(AUTH_HTML, error=error)
 
 @app.route('/register', methods=['POST'])
@@ -424,7 +402,7 @@ def register():
         cursor.execute("INSERT INTO users (identifier, password) VALUES (?, ?)", (identifier, password))
         conn.commit()
         conn.close()
-        return render_template_string(AUTH_HTML, success="تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.")
+        return render_template_string(AUTH_HTML, success="تم إنشاء الحساب بنجاح!")
     except sqlite3.IntegrityError:
         return render_template_string(AUTH_HTML, error="هذا البريد أو رقم الهاتِف مستخدم مسبقاً.")
 
@@ -441,23 +419,15 @@ def home():
 
 @app.route('/manifest.json')
 def manifest():
-    manifest_data = {
+    return jsonify({
         "name": "منصة السكنر الشاملة",
         "short_name": "السكنر الشامل",
-        "description": "منصة متكاملة للسكنر الخارجي وأسواق المال",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#0f172a",
         "theme_color": "#0284c7",
-        "icons": [
-            {
-                "src": "https://img.icons8.com/color/512/stocks.png",
-                "sizes": "512x512",
-                "type": "image/png"
-            }
-        ]
-    }
-    return jsonify(manifest_data)
+        "icons": [{"src": "https://img.icons8.com/color/512/stocks.png", "sizes": "512x512", "type": "image/png"}]
+    })
 
 @app.route('/api/app-data', methods=['GET'])
 def get_app_data():
@@ -467,24 +437,23 @@ def get_app_data():
     cursor.execute("SELECT * FROM assets")
     rows = cursor.fetchall()
     conn.close()
-    
-    assets_list = [dict(row) for row in rows]
-    return jsonify({"assets": assets_list})
+    return jsonify({"assets": [dict(row) for row in rows]})
 
+# نقطة استقبال التنبيهات المباشرة من TradingView
 @app.route('/api/webhook-update', methods=['POST'])
 def webhook_update():
     incoming_data = request.json
     if incoming_data:
         symbol = incoming_data.get("symbol", "N/A")
-        name = incoming_data.get("name", "غير محدد")
+        name = incoming_data.get("name", symbol)
         price = incoming_data.get("price", "0.00")
-        demand = incoming_data.get("demand", "0")
-        supply = incoming_data.get("supply", "0")
+        demand = incoming_data.get("demand", "مرتفع")
+        supply = incoming_data.get("supply", "طبيعي")
         liquidity = incoming_data.get("liquidity", "عالية")
-        analysis = incoming_data.get("analysis", "موجي: إيجابي | موفينج: مرتب | ماكد: صاعد | رقمي: دعم | فيبو: هدف مرتفع")
-        news = incoming_data.get("news", "أخبار مرصدة من السكنر الخارجي.")
+        analysis = incoming_data.get("analysis", "موجي: دافع | موفينج: إيجابي | ماكد: صاعد | رقمي: دعم | فيبو: هدف ممتاز")
+        news = incoming_data.get("news", "تنبيه فني مباشر صادر من شارت TradingView.")
         market = incoming_data.get("market", "US_STOCKS")
-        source = incoming_data.get("source", "External Scanner")
+        source = incoming_data.get("source", "TradingView")
 
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
@@ -496,6 +465,41 @@ def webhook_update():
         conn.close()
         
         return jsonify({"status": "success"}), 200
+    return jsonify({"status": "error"}), 400
+
+# نقطة استقبال التحليلات الخاصة بقنوات اليوتيوب (زيندو وأركان)
+@app.route('/api/youtube-webhook', methods=['POST'])
+def youtube_webhook():
+    incoming_data = request.json
+    if incoming_data:
+        symbol = incoming_data.get("symbol", "STOCK")
+        name = incoming_data.get("name", "تحليل فيديو يوتيوب")
+        price = incoming_data.get("price", "0.00")
+        demand = incoming_data.get("demand", "مكتشف من البث")
+        supply = incoming_data.get("supply", "متابعة")
+        liquidity = incoming_data.get("liquidity", "مرتفعة")
+        
+        wave = incoming_data.get("wave", "إيجابية ضمن دورة صاعدة")
+        moving = incoming_data.get("moving", "فوق المتوسطات المتحركة الرئيسية")
+        macd = incoming_data.get("macd", "تقاطع إيجابي للزخم")
+        digital = incoming_data.get("digital", "ارتداد من منطقة دعم رقمية")
+        fibo = incoming_data.get("fibo", "احترام نسب تصحيح فيبوناتشي")
+        
+        analysis = f"موجي: {wave} | موفينج: {moving} | ماكد: {macd} | رقمي: {digital} | فيبو: {fibo}"
+        news = incoming_data.get("news", "سهم تم ذكره وتحليله في بث/فيديو قناة يوتيوب (زيندو أو أركان).")
+        market = incoming_data.get("market", "US_STOCKS")
+        source = incoming_data.get("source", "YouTube Analyst")
+
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT OR REPLACE INTO assets (symbol, name, price, demand, supply, liquidity, analysis, news, market, source)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (symbol, name, price, demand, supply, liquidity, analysis, news, market, source))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"status": "success", "message": "تم إدراج سهم اليوتيوب في السكنر بنجاح"}), 200
     return jsonify({"status": "error"}), 400
 
 if __name__ == '__main__':
