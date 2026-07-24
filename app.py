@@ -3,7 +3,7 @@ import os
 
 app = Flask(__name__)
 
-# قاعدة بيانات حية تستقبل التحديثات الآلية من السكنر فوراً
+# قاعدة بيانات حية تستقبل التحديثات الآلية أو تدير الأقسام وشروط الأسهم والعملات
 live_scanner_data = [
     {"source": "Auto Scanner Bot", "symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "رصد آلي: اختراق قمة الجلسة وطلب قوي"}
 ]
@@ -14,7 +14,7 @@ INDEX_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>السكنر الأوتوماتيكي المباشر</title>
+    <title>تطبيق التداول والسكنر الموحد</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
         .container { max-width: 1100px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
@@ -29,20 +29,20 @@ INDEX_HTML = """
 <body>
 
 <div class="container">
-    <h1>السكنر الأوتوماتيكي المباشر (تحديث لحظي)</h1>
-    <p class="subtitle">الربط الآلي للبث والطلبات مع التنبيه الصوتي</p>
+    <h1>السكنر الأوتوماتيكي المباشر والعملات والأسهم</h1>
+    <p class="subtitle">التحديث اللحظي للسيولة والعروض والطلبات والتحليلات</p>
     
     <table>
         <thead>
             <tr>
                 <th>المصدر</th>
                 <th>الرمز</th>
-                <th>اسم السهم</th>
+                <th>اسم السهم / العملة</th>
                 <th>السعر</th>
                 <th>الطلب</th>
                 <th>العرض</th>
                 <th>السيولة</th>
-                <th>التحليل الفني</th>
+                <th>التحليل الفني والشروط</th>
             </tr>
         </thead>
         <tbody id="tableBody">
@@ -77,7 +77,6 @@ INDEX_HTML = """
                 return;
             }
 
-            // إذا دخل سهم جديد، انطقه صوتياً أوتوماتيك
             if (data.length > lastCount && lastCount > 0) {
                 const latest = data[data.length - 1];
                 speakStock(latest.symbol, latest.name);
@@ -103,7 +102,6 @@ INDEX_HTML = """
         }
     }
 
-    // تحديث الصفحة أوتوماتيكياً كل 3 ثوانٍ لجلب أحدث إشارات السكنر
     setInterval(fetchLiveScanner, 3000);
     fetchLiveScanner();
 </script>
@@ -120,7 +118,6 @@ def home():
 def get_live_data():
     return jsonify(live_scanner_data)
 
-# مسار استقبال البيانات الآلي (Webhook) ليتم إرسال الأسهم إليه تلقائياً من نظام السكنر الخارجي
 @app.route('/api/webhook-update', methods=['POST'])
 def webhook_update():
     incoming_data = request.json
@@ -133,7 +130,7 @@ def webhook_update():
             "demand": incoming_data.get("demand", "0"),
             "supply": incoming_data.get("supply", "0"),
             "liquidity": incoming_data.get("liquidity", "عادية"),
-            "analysis": incoming_data.get("analysis", "تحديث آلي مباشر")
+            "analysis": incoming_data.get("analysis", "تحديث آلي مباشر مع الشروط")
         })
         return jsonify({"status": "success", "message": "تم استقبال وتحديث السهم بنجاح"}), 200
     return jsonify({"status": "error", "message": "بيانات غير صالحة"}), 400
