@@ -21,7 +21,8 @@ scanner_live_signals = [
 all_assets_database = [
     {"symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.", "news": "إنيديا تعلن عن رقائق جديدة.", "market": "US"},
     {"symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "demand": "15K", "supply": "5K", "liquidity": "متوسطة", "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند الدعم.", "news": "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "market": "EG"},
-    {"symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب عرضي حول مستويات الدعم.", "news": "الأسواق تترقب بيانات التضخم الأمريكية.", "market": "Forex"}
+    {"symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب عرضي حول مستويات الدعم.", "news": "الأسواق تترقب بيانات التضخم الأمريكية.", "market": "Forex"},
+    {"symbol": "GBPUSD", "name": "السترليني دولار", "price": "1.2650", "demand": "80K", "supply": "70K", "liquidity": "عالية", "analysis": "ثبات أعلى مستويات الدعم الرئيسية.", "news": "تطورات اقتصادية هامة تؤثر على الاسترليني.", "market": "Forex"}
 ]
 
 INDEX_HTML = """
@@ -67,7 +68,7 @@ INDEX_HTML = """
     <p class="subtitle">السكنر اللحظي، الأسهم، والعملات مع محرك البحث الشامل</p>
     
     <div class="search-box">
-        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم، الاسم، أو العملة (مثال: NVDA, دايس, EURUSD)..." oninput="filterData()">
+        <input type="text" id="globalSearch" placeholder="ابحث برمز العملة أو السهم (مثال: EURUSD, NVDA, دايس)..." oninput="filterData()">
     </div>
 
     <div class="nav-tabs">
@@ -131,18 +132,6 @@ INDEX_HTML = """
         btn.classList.add('active');
     }
 
-    function speakStock(symbol, name) {
-        if ('speechSynthesis' in window) {
-            const text = `تنبيه سهم جديد ${name}, الرمز ${symbol}`;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ar-SA';
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-
-    let lastCount = 0;
-
     async function fetchAppData() {
         try {
             const response = await fetch('/api/app-data');
@@ -152,13 +141,6 @@ INDEX_HTML = """
 
             renderScanner(scannerData);
             renderAssets(assetsData);
-
-            if (scannerData.length > lastCount && lastCount > 0) {
-                const latest = scannerData[scannerData.length - 1];
-                speakStock(latest.symbol, latest.name);
-            }
-            lastCount = scannerData.length;
-
         } catch (error) {
             console.error('خطأ في جلب البيانات:', error);
         }
@@ -168,7 +150,7 @@ INDEX_HTML = """
         const tbody = document.getElementById('scannerTableBody');
         tbody.innerHTML = '';
         if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8">في انتظار ورود إشارات من السكنر...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8">لا توجد نتائج مطابقة في السكنر...</td></tr>';
             return;
         }
         data.forEach((item) => {
@@ -191,9 +173,12 @@ INDEX_HTML = """
         stocksDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المتاحة:</h4>';
         forexDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">أزواج العملات:</h4>';
 
+        let hasStocks = false;
+        let hasForex = false;
+
         if(!data || data.length === 0) {
-            stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد بيانات...</p>';
-            forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد بيانات...</p>';
+            stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج...</p>';
+            forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج...</p>';
             return;
         }
 
@@ -208,10 +193,15 @@ INDEX_HTML = """
 
             if (item.market === 'Forex') {
                 forexDiv.innerHTML += cardHTML;
+                hasForex = true;
             } else {
                 stocksDiv.innerHTML += cardHTML;
+                hasStocks = true;
             }
         });
+
+        if (!hasStocks) stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة للبحث.</p>';
+        if (!hasForex) forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد عملات مطابقة للبحث.</p>';
     }
 
     function filterData() {
@@ -222,10 +212,13 @@ INDEX_HTML = """
             return;
         }
         const filteredScanner = scannerData.filter(item => 
-            item.symbol.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)
+            (item.symbol && item.symbol.toLowerCase().includes(query)) || 
+            (item.name && item.name.toLowerCase().includes(query))
         );
         const filteredAssets = assetsData.filter(item => 
-            item.symbol.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)
+            (item.symbol && item.symbol.toLowerCase().includes(query)) || 
+            (item.name && item.name.toLowerCase().includes(query)) ||
+            (item.market && item.market.toLowerCase().includes(query))
         );
         renderScanner(filteredScanner);
         renderAssets(filteredAssets);
