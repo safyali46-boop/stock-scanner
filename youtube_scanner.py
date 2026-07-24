@@ -2,22 +2,22 @@ import requests
 
 WEBHOOK_URL = "https://stock-scanner-production-dd80.up.railway.app/api/webhook-update"
 
-def fetch_channel_stocks():
-    # البيانات الأصلية (الاسكنر وسهم دايس)
+def fetch_smallcaps_stocks():
+    # أسهم ومؤشرات Small Caps الأمريكية المستخرجة من تحليلات القنوات
     stocks_found = [
         {
-            "symbol": "DICE", 
-            "name": "دايس للملابس الجاهزة", 
-            "price": "2.05", 
-            "signal": "شراء / متابعة", 
-            "source": "الاسكنر العام"
+            "symbol": "ARKAN_SC", 
+            "name": "Arkan SmallCap Alert", 
+            "price": "Live", 
+            "signal": "Breakout / Momentum", 
+            "source": "قناة أركان (US SmallCaps)"
         },
         {
-            "symbol": "SCANNER", 
-            "name": "إيدو اسكنر السوق", 
-            "price": "مباشر", 
-            "signal": "تحديث إيجابي", 
-            "source": "إيدو اسكنر"
+            "symbol": "ZENDO_SC", 
+            "name": "Zendo SmallCap Watch", 
+            "price": "Live", 
+            "signal": "High Volume / Runner", 
+            "source": "قناة زيندو (US SmallCaps)"
         }
     ]
     
@@ -29,4 +29,4 @@ def fetch_channel_stocks():
             print(f"خطأ في الإرسال: {e}")
 
 if __name__ == "__main__":
-    fetch_channel_stocks()
+    fetch_smallcaps_stocks()
