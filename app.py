@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template_string
+from flask import Flask, jsonify, request, render_template_string, make_response
 import sqlite3
 import os
 
@@ -45,6 +45,7 @@ INDEX_HTML = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة التداول المتكاملة</title>
+    <link rel="manifest" href="/manifest.json">
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
         .container { max-width: 1100px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
@@ -253,6 +254,26 @@ INDEX_HTML = """
 @app.route('/')
 def home():
     return render_template_string(INDEX_HTML)
+
+@app.route('/manifest.json')
+def manifest():
+    manifest_data = {
+        "name": "منصة التداول المتكاملة",
+        "short_name": "منصة التداول",
+        "description": "منصة متكاملة للسكنر اللحظي والأسهم والعملات مع التحليل والبحث الشامل",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#0f172a",
+        "theme_color": "#0284c7",
+        "icons": [
+            {
+                "src": "https://img.icons8.com/color/512/stocks.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    }
+    return jsonify(manifest_data)
 
 @app.route('/api/app-data', methods=['GET'])
 def get_app_data():
