@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
@@ -21,18 +21,7 @@ def webhook_update():
 
 @app.route('/scanner')
 def scanner_view():
-    html = "<h2 style='text-align:center;'>📊 نتائج الاسكنر الحيّة</h2>"
-    html += "<table border='1' style='margin:auto; width:80%; text-align:center; border-collapse:collapse; font-family:Tahoma;'>"
-    html += "<tr style='background:#007bff; color:white;'><th>الرمز</th><th>اسم السهم</th><th>السعر</th><th>الإشارة</th><th>المصدر</th></tr>"
-    
-    if scanner_results:
-        for item in scanner_results:
-            html += f"<tr><td><b>{item.get('symbol')}</b></td><td>{item.get('name')}</td><td>{item.get('price')}</td><td style='color:green; font-weight:bold;'>{item.get('signal')}</td><td>{item.get('source')}</td></tr>"
-    else:
-        html += "<tr><td colspan='5' style='padding:20px; color:#777;'>لا توجد بيانات حالياً... انتظر التحديث القادم!</td></tr>"
-    
-    html += "</table>"
-    return html
+    return render_template('scanner.html', stocks=scanner_results)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
