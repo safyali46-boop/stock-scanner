@@ -3,13 +3,14 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-app.secret_key = "trading_platform_professional_secret_key"
+app.secret_key = "ultimate_trading_scanner_secret_key"
 DB_NAME = "database.db"
 
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
+    # جدول الأصول الموحد لكل الأسواق والسكنر
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS assets (
             symbol TEXT PRIMARY KEY,
@@ -25,6 +26,7 @@ def init_db():
         )
     ''')
     
+    # جدول المستخدمين للدخول أو التسجيل
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,25 +39,26 @@ def init_db():
         INSERT OR IGNORE INTO users (identifier, password) VALUES (?, ?)
     ''', ("admin@trading.com", "123456"))
 
+    # عينة من الأسهم الأمريكية (تحت 50 دولار) ومصرية وعملات ومعادن كمخزون ابتدائي
     default_data = [
-        ("NIO", "نيو للسيارات الكهربائية", "5.40", "45K", "15K", "عالية", "ارتداد من دعم قاع السنوي مع تدفق سيولة.", "نيو تعلن عن زيادة في تسليمات السيارات.", "US", "Assets"),
-        ("SIRI", "سيريوس إكس إم", "3.20", "20K", "8K", "متوسطة", "استقرار عرضي وتجميع عند الدعم.", "أخبار حول إعادة هيكلة الأسهم.", "US", "Assets"),
-        ("F", "فورد موتورز", "11.80", "60K", "25K", "عالية", "تماسك أعلى المتوسطات المتحركة.", "فورد توسع استثمارات البطاريات.", "US", "Assets"),
-        ("PFE", "فايزر للأدوية", "27.50", "90K", "30K", "عالية جداً", "ضغط شراء استثماري طويل الأجل.", "عقود جديدة توافق عليها هيئة الدواء.", "US", "Assets"),
-        ("INTC", "إنتل كورب", "21.30", "110K", "50K", "عالية جداً", "محاولات اختراق خط الاتجاه الهابط.", "إنتل تتلقى دعماً حكومياً جديداً.", "US", "Assets"),
-        ("SOFI", "سوفي تكنولوجيز", "7.60", "75K", "20K", "عالية", "نشاط تداولات قوية ونمو في محفظة القروض.", "نتائج أعمال فصلية تفوق التوقعات.", "US", "Assets"),
-        ("PLTR", "بالانتير تكنولوجيز", "24.10", "150K", "40K", "عالية جداً", "زخم صاعد قوي بطلب مؤسسي مكثف.", "عقود دفاعية جديدة للشركات.", "US", "Assets"),
-        ("SNAP", "سناب شات", "10.50", "40K", "18K", "متوسطة", "تذبذب قرب مستويات المقاومة الفنية.", "تحديثات جديدة لتطبيق الإعلانات.", "US", "Assets"),
-        ("AMD", "إيه إم دي", "155.00", "200K", "70K", "عالية جداً", "منافسة قوية واختراق مستويات العرض.", "إطلاق معالجات ذكاء اصطناعي جديدة.", "US", "Assets"),
-        ("NVDA", "إنيديا", "130.20", "250K", "80K", "عالية جداً", "اختراق قمة الجلسة وطلب مؤسسي قوي.", "إنيديا تعلن عن رقائق جديدة بمعمارية متطورة.", "US", "Auto Scanner"),
-        ("AAPL", "آبل", "185.50", "180K", "60K", "عالية جداً", "ثبات أعلى الدعم مع ضغط شرایی مؤسسي.", "آبل تسجل إيرادات فصلية قياسية.", "US", "Assets"),
-        ("DICE", "دايس للصناعات", "2.05", "15K", "5K", "متوسطة", "نشاط ملحوظ بالسوق المصري وعروض شراء عند مستويات الدعم.", "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "EG", "Assets"),
-        ("COMI", "البنك التجاري الدولي", "80.00", "120K", "40K", "عالية جداً", "اتجاه صاعد واستقرار للسيولة المؤسسية.", "البنك يعلن عن توزيعات نقدية مرتقبة.", "EG", "Assets"),
-        ("HELI", "مصر للصناعات الهندسية / هليوبوليس", "12.50", "35K", "12K", "متوسطة", "تحركات إيجابية قرب مستويات الدعم.", "تطوير أراضي جديدة للمشاريع.", "EG", "Assets"),
-        ("PHDC", "بالم هيلز للتعمير", "5.80", "50K", "15K", "عالية", "حجم تداول مرتفع واختراق مقاومة فرعية.", "مبيعات عقارية قياسية بنهاية الربع.", "EG", "Assets"),
-        ("EURUSD", "اليورو دولار", "1.0850", "100K", "90K", "عالية", "تذبذب عرضي حول مستويات الدعم مع سيولة متوازنة.", "الأسواق تترقب بيانات التضخم الأمريكية.", "Forex", "Assets"),
-        ("GBPUSD", "السترليني دولار", "1.2650", "80K", "70K", "عالية", "ثبات أعلى مستويات الدعم الرئيسية للفنيات.", "تطورات اقتصادية هامة تؤثر على زوج الاسترليني.", "Forex", "Assets"),
-        ("USDJPY", "الدولار ين", "155.20", "110K", "95K", "عالية جداً", "ترقب لتدخلات البنك المركزي عند مستويات المقاومة.", "بيانات بنك اليابان تقود التداولات.", "Forex", "Assets")
+        # الأسهم الأمريكية (حتى 50 دولار) مع تفاصيل التحليل الفني
+        ("NIO", "نيو للسيارات", "5.40", "45K", "15K", "عالية", "موجي: قاع صاعد | موفينج: تقاطع إيجابي | ماكد: صاعد | رقمي: دعم قوي | فيبو: تصحيح 61.8%", "زيادة تسليمات السيارات الكهربائية.", "US_STOCKS", "Assets"),
+        ("F", "فورد موتورز", "11.80", "60K", "25K", "عالية", "موجي: موجة 3 دافعة | موفينج: فوق 50 | ماكد: إيجابي | رقمي: ثبات فوق 11 | فيبو: ارتداد من 38.2%", "توسعات جديدة في قطاع البطاريات.", "US_STOCKS", "Assets"),
+        ("SOFI", "سوفي تكنولوجيز", "7.60", "75K", "20K", "عالية", "موجي: نهاية تصحيح | موفينج: تقاطع ذهبي | ماكد: تقاطع إيجابي | رقمي: مقاومة مختترقة | فيبو: هدف 50%", "نتائج أعمال فصلية ممتازة.", "US_STOCKS", "Assets"),
+        ("PLTR", "بالانتير", "24.10", "150K", "40K", "عالية جداً", "موجي: اندفاع قوي | موفينج: ترند صاعد | ماكد: زخم عالي | رقمي: صدارة السيولة | فيبو: امتداد 1.618", "عقود دفاعية جديدة ضخمة.", "US_STOCKS", "Assets"),
+        ("INTC", "إنتل", "21.30", "110K", "50K", "عالية جداً", "موجي: قاع تاريخي | موفينج: قرب المتوسط | ماكد: ارتداد | رقمي: دعم 20 | فيبو: دعم رئيسي", "دعم حكومي لقطاع الرقائق.", "US_STOCKS", "Assets"),
+        
+        # الأسهم المصرية (EGX)
+        ("DICE", "دايس للصناعات", "2.05", "15K", "5K", "متوسطة", "موجي: تجميع صاعد | موفينج: استقرار | ماكد: محايد | رقمي: دعم 2.00 | فيبو: ارتداد 50%", "نشاط تداولات ترقب لنتائج الأعمال.", "EGX", "Assets"),
+        ("COMI", "البنك التجاري الدولي", "80.00", "120K", "40K", "عالية جداً", "موجي: موجة رئيسية صاعدة | موفينج: ترتيب إيجابي | ماكد: صاعد | رقمي: قمة جديدة | فيبو: استقرار", "توزيعات نقدية مرتقبة.", "EGX", "Assets"),
+        ("PHDC", "بالم هيلز", "5.80", "50K", "15K", "عالية", "موجي: اختراق قناة | موفينج: فوق المتوسطات | ماكد: إيجابي | رقمي: مقاومة 5.70 | فيبو: هدف 6.20", "مبيعات عقارية قياسية.", "EGX", "Assets"),
+
+        # العملات والفوركس
+        ("EURUSD", "اليورو دولار", "1.0850", "100K", "90K", "عالية", "موجي: عرضي متماسك | موفينج: تداخل | ماكد: هادئ | رقمي: دعم 1.08 | فيبو: 50% ريتارسمينت", "ترقب بيانات التضخم الأمريكية.", "FOREX", "Assets"),
+        ("GBPUSD", "السترليني دولار", "1.2650", "80K", "70K", "عالية", "موجي: صاعد تدريجي | موفينج: إيجابي | ماكد: صاعد | رقمي: دعم 1.26 | فيبو: هدف 1.275", "بيانات اقتصادية بريطانية قوية.", "FOREX", "Assets"),
+
+        # المعادن (الذهب والفضة)
+        ("XAUUSD", "الذهب (Gold)", "2380.00", "500K", "200K", "عالية جداً", "موجي: موجة 5 صاعدة | موفينج: دعم قوي | ماكد: زخم إيجابي | رقمي: دعم 2350 | فيبو: امتداد تاريخي", "توترات جيوستراتيجية تدعم الملاذ الآمن.", "METALS", "Assets")
     ]
     
     for item in default_data:
@@ -74,7 +77,7 @@ AUTH_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول / إنشاء حساب - منصة التداول</title>
+    <title>تسجيل الدخول - منصة السكنر الشاملة</title>
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; direction: rtl; }
         .auth-card { background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 100%; max-width: 400px; border: 1px solid #334155; text-align: center; }
@@ -138,11 +141,11 @@ INDEX_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة التداول المتكاملة</title>
+    <title>منصة السكنر الشاملة (الأسواق العالمية والمحلية)</title>
     <link rel="manifest" href="/manifest.json">
     <style>
         body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; direction: rtl; }
-        .container { max-width: 1100px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .container { max-width: 1200px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         h1 { color: #38bdf8; font-size: 22px; margin: 0; }
         .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
@@ -151,23 +154,23 @@ INDEX_HTML = """
         .search-box { margin: 15px 0; text-align: center; }
         .search-box input { width: 100%; max-width: 500px; padding: 12px; font-size: 15px; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 8px; outline: none; }
 
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
-        .tab-btn { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.3s; }
+        .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .tab-btn { background: #334155; color: white; border: none; padding: 9px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s; }
         .tab-btn.active, .tab-btn:hover { background: #0284c7; }
 
         .section-content { display: none; }
         .section-content.active { display: block; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border: 1px solid #334155; text-align: center; font-size: 13px; cursor: pointer; }
+        th, td { padding: 10px; border: 1px solid #334155; text-align: center; font-size: 12px; cursor: pointer; }
         th { background-color: #0f172a; color: #38bdf8; cursor: default; }
         tr:hover { background-color: #334155; }
-        .badge { background: #0284c7; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge { background: #0284c7; color: white; padding: 3px 6px; border-radius: 4px; font-size: 11px; }
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
-        .modal-content { background-color: #1e293b; padding: 25px; border-radius: 10px; width: 500px; max-width: 90%; border: 1px solid #334155; text-align: right; }
-        .close-btn { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; float: left; font-weight: bold; }
-        .card { background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .modal-content { background-color: #1e293b; padding: 25px; border-radius: 10px; width: 550px; max-width: 90%; border: 1px solid #334155; text-align: right; max-height: 85vh; overflow-y: auto; }
+        .close-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; float: left; font-weight: bold; }
+        .card { background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; cursor: pointer; transition: 0.2s; }
         .card:hover { border-color: #38bdf8; }
     </style>
 </head>
@@ -176,65 +179,83 @@ INDEX_HTML = """
 <div class="container">
     <div class="header-flex">
         <div>
-            <h1>منصة التداول المتكاملة</h1>
-            <p class="subtitle">السكنر اللحظي (ناقل السكنرات الخارجية)، الأسهم، والعملات</p>
+            <h1>منصة السكنر الشاملة</h1>
+            <p class="subtitle">السكنر الخارجي اللحظي، الأسهم الأمريكية (حتى 50$)، المصرية، العملات، والمعادن</p>
         </div>
         <a href="/logout"><button class="logout-btn">تسجيل الخروج</button></a>
     </div>
     
     <div class="search-box">
-        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم أو الاسم (مثال: NIO, دايس, EURUSD)..." oninput="filterData()">
+        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم أو الاسم في كل الأسواق (مثال: NIO, دايس, EURUSD, XAUUSD)..." oninput="filterData()">
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 السكنر اللحظي (السكنرات الخارجية)</button>
-        <button class="tab-btn" onclick="switchTab('us-stocks', this)">🇺🇸 الأسهم (أمريكية ومصرية)</button>
-        <button class="tab-btn" onclick="switchTab('currencies', this)">💱 العملات والسيولة</button>
+        <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 سكنر الإشارات الخارجية</button>
+        <button class="tab-btn" onclick="switchTab('us-stocks', this)">🇺🇸 الأسهم الأمريكية (&lt;50$)</button>
+        <button class="tab-btn" onclick="switchTab('egypt-stocks', this)">🇪🇬 البورصة المصرية</button>
+        <button class="tab-btn" onclick="switchTab('forex', this)">💱 العملات (Forex)</button>
+        <button class="tab-btn" onclick="switchTab('metals', this)">🪙 المعادن والسلع</button>
     </div>
 
+    <!-- تبيوب السكنر الخارجي -->
     <div id="scanner" class="section-content active">
-        <h3 style="color: #38bdf8;">إشارات السكنر اللحظي (مستقبلة من السكنرات الخارجية)</h3>
+        <h3 style="color: #38bdf8;">إشارات السكنر الخارجي (تحديث آلي لآخر اليوم)</h3>
         <table>
             <thead>
                 <tr>
                     <th>المصدر</th>
                     <th>الرمز</th>
-                    <th>الاسم / العملة</th>
+                    <th>الاسم</th>
                     <th>السعر</th>
                     <th>الطلب</th>
                     <th>العرض</th>
                     <th>السيولة</th>
-                    <th>التحليل السريع</th>
+                    <th>التحليل الشامل</th>
                 </tr>
             </thead>
             <tbody id="scannerTableBody"></tbody>
         </table>
     </div>
 
+    <!-- تبويب الأسهم الأمريكية -->
     <div id="us-stocks" class="section-content">
-        <h3 style="color: #38bdf8;">قائمة الأسهم المتاحة والمعتمدة</h3>
-        <div id="stocksList"></div>
+        <h3 style="color: #38bdf8;">الأسهم الأمريكية (حتى 50 دولار)</h3>
+        <div id="usList"></div>
     </div>
 
-    <div id="currencies" class="section-content">
-        <h3 style="color: #38bdf8;">متابعة العملات والأسواق العالمية</h3>
+    <!-- تبويب البورصة المصرية -->
+    <div id="egypt-stocks" class="section-content">
+        <h3 style="color: #38bdf8;">الأسهم والبورصة المصرية (EGX)</h3>
+        <div id="egyptList"></div>
+    </div>
+
+    <!-- تبويب العملات -->
+    <div id="forex" class="section-content">
+        <h3 style="color: #38bdf8;">أزواج العملات (Forex)</h3>
         <div id="forexList"></div>
+    </div>
+
+    <!-- تبويب المعادن -->
+    <div id="metals" class="section-content">
+        <h3 style="color: #38bdf8;">المعادن والسلع (Metals)</h3>
+        <div id="metalsList"></div>
     </div>
 
 </div>
 
+<!-- نافذة التفاصيل الشاملة (التحليل الموجي، موفينج، ماكد، رقمي، فيبو، الأخبار) -->
 <div id="stockModal" class="modal">
     <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">إغلاق</button>
         <h2 id="modalSymbol" style="color: #38bdf8; margin-top: 0;"></h2>
-        <p><b>الاسم / الرمز:</b> <span id="modalName"></span> | <b>السعر:</b> <span id="modalPrice"></span></p>
+        <p><b>الاسم:</b> <span id="modalName"></span> | <b>السعر:</b> <span id="modalPrice"></span></p>
         <hr style="border-color: #334155;">
-        <h3 style="color: #22c55e; font-size: 16px;">الطلب والعرض والسيولة:</h3>
-        <p id="modalSupplyDemand" style="color: #f8fafc; font-size: 14px;"></p>
-        <h3 style="color: #22c55e; font-size: 16px;">أحدث الأخبار والتقارير:</h3>
-        <p id="modalNews" style="color: #94a3b8; font-size: 14px; line-height: 1.5;"></p>
-        <h3 style="color: #38bdf8; font-size: 16px;">التحليل الفني والشروط:</h3>
-        <p id="modalAnalysis" style="color: #f8fafc; font-size: 14px; line-height: 1.5;"></p>
+        <h3 style="color: #22c55e; font-size: 15px;">حجم الطلب والعرض والسيولة:</h3>
+        <p id="modalSupplyDemand" style="color: #f8fafc; font-size: 13px;"></p>
+        <h3 style="color: #38bdf8; font-size: 15px;">التحليل الفني المتقدم (موجي، موفينج، ماكد، رقمي، فيبو):</h3>
+        <p id="modalAnalysis" style="color: #f8fafc; font-size: 13px; line-height: 1.6; background: #0f172a; padding: 10px; border-radius: 6px;"></p>
+        <h3 style="color: #eab308; font-size: 15px;">الأخبار العاجلة والأسباب:</h3>
+        <p id="modalNews" style="color: #94a3b8; font-size: 13px; line-height: 1.5;"></p>
     </div>
 </div>
 
@@ -261,59 +282,74 @@ INDEX_HTML = """
 
     function renderAll(data) {
         const scannerTbody = document.getElementById('scannerTableBody');
-        const stocksDiv = document.getElementById('stocksList');
+        const usDiv = document.getElementById('usList');
+        const egyptDiv = document.getElementById('egyptList');
         const forexDiv = document.getElementById('forexList');
+        const metalsDiv = document.getElementById('metalsList');
 
         scannerTbody.innerHTML = '';
-        stocksDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المتاحة:</h4>';
+        usDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم الأمريكية المتاحة:</h4>';
+        egyptDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المصرية المتاحة:</h4>';
         forexDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">أزواج العملات:</h4>';
+        metalsDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">المعادن والسلع:</h4>';
 
         let hasScanner = false;
-        let hasStocks = false;
+        let hasUS = false;
+        let hasEgypt = false;
         let hasForex = false;
+        let hasMetals = false;
 
         if(!data || data.length === 0) {
-            scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد بيانات...</td></tr>';
-            stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج...</p>';
-            forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج...</p>';
+            scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد إشارات سكنر حالياً...</td></tr>';
             return;
         }
 
         data.forEach((item) => {
-            if (item.market !== 'Forex') {
-                scannerTbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
-                    <td><span class="badge">${item.source || 'External Scanner'}</span></td>
-                    <td><b>${item.symbol}</b></td>
-                    <td>${item.name}</td>
-                    <td>${item.price}</td>
-                    <td style="color: #22c55e;">${item.demand || '0'}</td>
-                    <td style="color: #ef4444;">${item.supply || '0'}</td>
-                    <td><b>${item.liquidity || 'عادية'}</b></td>
-                    <td>${item.analysis || ''}</td>
-                </tr>`;
-                hasScanner = true;
-            }
+            // كل إشارة واردة من السكنر الخارجي أو مسجلة تظهر في جدول السكنر الموحد
+            scannerTbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
+                <td><span class="badge">${item.source || 'Scanner'}</span></td>
+                <td><b>${item.symbol}</b></td>
+                <td>${item.name}</td>
+                <td>${item.price}</td>
+                <td style="color: #22c55e;">${item.demand || '0'}</td>
+                <td style="color: #ef4444;">${item.supply || '0'}</td>
+                <td><b>${item.liquidity || 'عادية'}</b></td>
+                <td>${item.analysis ? item.analysis.substring(0, 45) + '...' : ''}</td>
+            </tr>`;
+            hasScanner = true;
 
             const cardHTML = `<div class="card" onclick='openModal(${JSON.stringify(item)})'>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <b style="color: #38bdf8; font-size: 16px;">${item.symbol} - ${item.name}</b>
+                    <b style="color: #38bdf8; font-size: 15px;">${item.symbol} - ${item.name}</b>
                     <span class="badge">السعر: ${item.price}</span>
                 </div>
-                <p style="color: #94a3b8; font-size: 13px; margin: 8px 0 0 0;"><b>التحليل:</b> ${item.analysis}</p>
+                <p style="color: #94a3b8; font-size: 12px; margin: 6px 0 0 0;"><b>التحليل الشامل:</b> ${item.analysis}</p>
             </div>`;
 
-            if (item.market === 'Forex') {
+            if (item.market === 'US_STOCKS') {
+                usDiv.innerHTML += cardHTML;
+                hasUS = true;
+            } else if (item.market === 'EGX') {
+                egyptDiv.innerHTML += cardHTML;
+                hasEgypt = true;
+            } else if (item.market === 'FOREX') {
                 forexDiv.innerHTML += cardHTML;
                 hasForex = true;
+            } else if (item.market === 'METALS') {
+                metalsDiv.innerHTML += cardHTML;
+                hasMetals = true;
             } else {
-                stocksDiv.innerHTML += cardHTML;
-                hasStocks = true;
+                // إذا جاء سهم عام من السكنر الخارجي يضاف افتراضياً للأمريكي أو العام
+                usDiv.innerHTML += cardHTML;
+                hasUS = true;
             }
         });
 
-        if (!hasScanner) scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد إشارات واردة من السكنرات الخارجية.</td></tr>';
-        if (!hasStocks) stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة.</p>';
+        if (!hasScanner) scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد إشارات واردة حتى الآن.</td></tr>';
+        if (!hasUS) usDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة.</p>';
+        if (!hasEgypt) egyptDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة.</p>';
         if (!hasForex) forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد عملات مطابقة.</p>';
+        if (!hasMetals) metalsDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد معادن مطابقة.</p>';
     }
 
     function filterData() {
@@ -335,9 +371,9 @@ INDEX_HTML = """
         document.getElementById('modalSymbol').innerText = item.symbol;
         document.getElementById('modalName').innerText = item.name;
         document.getElementById('modalPrice').innerText = item.price;
-        document.getElementById('modalSupplyDemand').innerHTML = `حجم الطلب: <span style="color: #22c55e;">${item.demand || 'N/A'}</span> | حجم العرض: <span style="color: #ef4444;">${item.supply || 'N/A'}</span> | السيولة: <b>${item.liquidity || 'عادية'}</b>`;
-        document.getElementById('modalNews').innerText = item.news || "لا توجد أخبار عاجلة مسجلة لهذا الأصل.";
-        document.getElementById('modalAnalysis').innerText = item.analysis || "تحت الفحص وفقاً لشروط السوق والسيولة.";
+        document.getElementById('modalSupplyDemand').innerHTML = `الطلب: <span style="color: #22c55e;">${item.demand || 'N/A'}</span> | العرض: <span style="color: #ef4444;">${item.supply || 'N/A'}</span> | السيولة: <b>${item.liquidity || 'عادية'}</b>`;
+        document.getElementById('modalAnalysis').innerText = item.analysis || "تحت الفحص الفني الشامل.";
+        document.getElementById('modalNews').innerText = item.news || "لا توجد أخبار مسجلة حالياً لهذا الأصل.";
         document.getElementById('stockModal').style.display = 'flex';
     }
 
@@ -406,9 +442,9 @@ def home():
 @app.route('/manifest.json')
 def manifest():
     manifest_data = {
-        "name": "منصة التداول المتكاملة",
-        "short_name": "منصة التداول",
-        "description": "منصة متكاملة للسكنر اللحظي والأسهم والعملات",
+        "name": "منصة السكنر الشاملة",
+        "short_name": "السكنر الشامل",
+        "description": "منصة متكاملة للسكنر الخارجي وأسواق المال",
         "start_url": "/",
         "display": "standalone",
         "background_color": "#0f172a",
@@ -444,10 +480,10 @@ def webhook_update():
         price = incoming_data.get("price", "0.00")
         demand = incoming_data.get("demand", "0")
         supply = incoming_data.get("supply", "0")
-        liquidity = incoming_data.get("liquidity", "عادية")
-        analysis = incoming_data.get("analysis", "إشارة واردة من سكنر خارجي")
-        news = incoming_data.get("news", "تحديث فورى مرصد.")
-        market = incoming_data.get("market", "US")
+        liquidity = incoming_data.get("liquidity", "عالية")
+        analysis = incoming_data.get("analysis", "موجي: إيجابي | موفينج: مرتب | ماكد: صاعد | رقمي: دعم | فيبو: هدف مرتفع")
+        news = incoming_data.get("news", "أخبار مرصدة من السكنر الخارجي.")
+        market = incoming_data.get("market", "US_STOCKS")
         source = incoming_data.get("source", "External Scanner")
 
         conn = sqlite3.connect(DB_NAME)
