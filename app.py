@@ -1,31 +1,42 @@
 from flask import Flask, jsonify, request, render_template_string
+import sqlite3
 import os
 
 app = Flask(__name__)
+DB_NAME = "database.db"
 
-scanner_live_signals = [
-    {
-        "source": "Auto Scanner", 
-        "symbol": "NVDA", 
-        "name": "إنيديا", 
-        "price": "130.20", 
-        "demand": "50K", 
-        "supply": "20K", 
-        "liquidity": "عالية جداً", 
-        "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.",
-        "news": "إنيديا تعلن عن رقائق جديدة بمعمارية متطورة.",
-        "market": "US"
-    }
-]
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS assets (
+            symbol TEXT PRIMARY KEY,
+            name TEXT,
+            price TEXT,
+            demand TEXT,
+            supply TEXT,
+            liquidity TEXT,
+            analysis TEXT,
+            news TEXT,
+            market TEXT,
+            source TEXT
+        )
+    ''')
+    cursor.execute("SELECT COUNT(*) FROM assets")
+    if cursor.fetchone()[0] == 0:
+        default_data = [
+            ("NVDA", "إنيديا", "130.20", "50K", "20K", "عالية جداً", "اختراق قمة الجلسة وطلب مؤسسي قوي.", "إنيديا تعلن عن رقائق جديدة بمعمارية متطورة.", "US", "Auto Scanner"),
+            ("AAPL", "آبل", "185.50", "80K", "30K", "عالية جداً", "ثبات أعلى الدعم مع ضغط شرایی مؤسسي.", "آبل تسجل إيرادات فصلية قياسية.", "US", "Assets"),
+            ("DICE", "دايس للصناعات", "2.05", "15K", "5K", "متوسطة", "نشاط ملحوظ بالسوق المصري وعروض شراء عند مستويات الدعم.", "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "EG", "Assets"),
+            ("COMI", "البنك التجاري الدولي", "80.00", "120K", "40K", "عالية جداً", "اتجاه صاعد واستقرار للسيولة المؤسسية.", "البنك يعلن عن توزيعات نقدية مرتقبة.", "EG", "Assets"),
+            ("EURUSD", "اليورو دولار", "1.0850", "100K", "90K", "عالية", "تذبذب عرضي حول مستويات الدعم مع سيولة متوازنة.", "الأسواق تترقب بيانات التضخم الأمريكية.", "Forex", "Assets"),
+            ("GBPUSD", "السترليني دولار", "1.2650", "80K", "70K", "عالية", "ثبات أعلى مستويات الدعم الرئيسية للفنيات.", "تطورات اقتصادية هامة تؤثر على زوج الاسترليني.", "Forex", "Assets")
+        ]
+        cursor.executemany("INSERT OR IGNORE INTO assets VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", default_data)
+        conn.commit()
+    conn.close()
 
-all_assets_database = [
-    {"symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.", "news": "إنيديا تعلن عن رقائق جديدة وسط طلب قياسي.", "market": "US"},
-    {"symbol": "AAPL", "name": "آبل", "price": "185.50", "demand": "80K", "supply": "30K", "liquidity": "عالية جداً", "analysis": "ثبات أعلى الدعم مع ضغط شرایی مؤسسي.", "news": "آبل تسجل إيرادات فصلية قياسية.", "market": "US"},
-    {"symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "demand": "15K", "supply": "5K", "liquidity": "متوسطة", "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند مستويات الدعم.", "news": "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "market": "EG"},
-    {"symbol": "COMI", "name": "البنك التجاري الدولي", "price": "80.00", "demand": "120K", "supply": "40K", "liquidity": "عالية جداً", "analysis": "اتجاه صاعد واستقرار للسيولة المؤسسية.", "news": "البنك يعلن عن توزيعات نقدية مرتقبة.", "market": "EG"},
-    {"symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب عرضي حول مستويات الدعم مع سيولة متوازنة.", "news": "الأسواق تترقب بيانات التضخم الأمريكية.", "market": "Forex"},
-    {"symbol": "GBPUSD", "name": "السترليني دولار", "price": "1.2650", "demand": "80K", "supply": "70K", "liquidity": "عالية", "analysis": "ثبات أعلى مستويات الدعم الرئيسية للفنيات.", "news": "تطورات اقتصادية هامة تؤثر على زوج الاسترليني.", "market": "Forex"}
-]
+init_db()
 
 INDEX_HTML = """
 <!DOCTYPE html>
@@ -67,7 +78,7 @@ INDEX_HTML = """
 
 <div class="container">
     <h1>منصة التداول المتكاملة</h1>
-    <p class="subtitle">السكنر اللحظي، الأسهم، والعملات مع محرك البحث الشامل</p>
+    <p class="subtitle">السكنر اللحظي، الأسهم، والعملات مع قاعدة بيانات وقاعدة بحث شاملة</p>
     
     <div class="search-box">
         <input type="text" id="globalSearch" placeholder="ابحث برمز العملة أو السهم (مثال: EURUSD, دايس, COMI)..." oninput="filterData()">
@@ -126,8 +137,7 @@ INDEX_HTML = """
 </div>
 
 <script>
-    let scannerData = [];
-    let assetsData = [];
+    let globalAssets = [];
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
@@ -140,53 +150,48 @@ INDEX_HTML = """
         try {
             const response = await fetch('/api/app-data');
             const data = await response.json();
-            scannerData = data.scanner;
-            assetsData = data.assets;
-
-            renderScanner(scannerData);
-            renderAssets(assetsData);
+            globalAssets = data.assets;
+            renderAll(globalAssets);
         } catch (error) {
             console.error('خطأ في جلب البيانات:', error);
         }
     }
 
-    function renderScanner(data) {
-        const tbody = document.getElementById('scannerTableBody');
-        tbody.innerHTML = '';
-        if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8">لا توجد نتائج مطابقة في السكنر...</td></tr>';
-            return;
-        }
-        data.forEach((item) => {
-            tbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
-                <td><span class="badge">${item.source || 'Scanner'}</span></td>
-                <td><b>${item.symbol}</b></td>
-                <td>${item.name}</td>
-                <td>${item.price}</td>
-                <td style="color: #22c55e;">${item.demand}</td>
-                <td style="color: #ef4444;">${item.supply}</td>
-                <td><b>${item.liquidity}</b></td>
-                <td>${item.analysis}</td>
-            </tr>`;
-        });
-    }
-
-    function renderAssets(data) {
+    function renderAll(data) {
+        const scannerTbody = document.getElementById('scannerTableBody');
         const stocksDiv = document.getElementById('stocksList');
         const forexDiv = document.getElementById('forexList');
+
+        scannerTbody.innerHTML = '';
         stocksDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المتاحة:</h4>';
         forexDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">أزواج العملات:</h4>';
 
+        let hasScanner = false;
         let hasStocks = false;
         let hasForex = false;
 
         if(!data || data.length === 0) {
+            scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد بيانات...</td></tr>';
             stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج...</p>';
             forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج...</p>';
             return;
         }
 
         data.forEach((item) => {
+            if (item.source === 'Auto Scanner' || item.market !== 'Forex') {
+                scannerTbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
+                    <td><span class="badge">${item.source || 'Scanner'}</span></td>
+                    <td><b>${item.symbol}</b></td>
+                    <td>${item.name}</td>
+                    <td>${item.price}</td>
+                    <td style="color: #22c55e;">${item.demand}</td>
+                    <td style="color: #ef4444;">${item.supply}</td>
+                    <td><b>${item.liquidity}</b></td>
+                    <td>${item.analysis}</td>
+                </tr>`;
+                hasScanner = true;
+            }
+
             const cardHTML = `<div class="card" onclick='openModal(${JSON.stringify(item)})'>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <b style="color: #38bdf8; font-size: 16px;">${item.symbol} - ${item.name}</b>
@@ -204,28 +209,23 @@ INDEX_HTML = """
             }
         });
 
-        if (!hasStocks) stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة للبحث.</p>';
-        if (!hasForex) forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد عملات مطابقة للبحث.</p>';
+        if (!hasScanner) scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد إشارات في السكنر.</td></tr>';
+        if (!hasStocks) stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة.</p>';
+        if (!hasForex) forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد عملات مطابقة.</p>';
     }
 
     function filterData() {
         const query = document.getElementById('globalSearch').value.toLowerCase().trim();
         if (!query) {
-            renderScanner(scannerData);
-            renderAssets(assetsData);
+            renderAll(globalAssets);
             return;
         }
-        const filteredScanner = scannerData.filter(item => 
-            (item.symbol && item.symbol.toLowerCase().includes(query)) || 
-            (item.name && item.name.toLowerCase().includes(query))
-        );
-        const filteredAssets = assetsData.filter(item => 
+        const filtered = globalAssets.filter(item => 
             (item.symbol && item.symbol.toLowerCase().includes(query)) || 
             (item.name && item.name.toLowerCase().includes(query)) ||
             (item.market && item.market.toLowerCase().includes(query))
         );
-        renderScanner(filteredScanner);
-        renderAssets(filteredAssets);
+        renderAll(filtered);
     }
 
     function openModal(item) {
@@ -256,31 +256,40 @@ def home():
 
 @app.route('/api/app-data', methods=['GET'])
 def get_app_data():
-    return jsonify({
-        "scanner": scanner_live_signals,
-        "assets": all_assets_database
-    })
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM assets")
+    rows = cursor.fetchall()
+    conn.close()
+    
+    assets_list = [dict(row) for row in rows]
+    return jsonify({"assets": assets_list})
 
 @app.route('/api/webhook-update', methods=['POST'])
 def webhook_update():
     incoming_data = request.json
     if incoming_data:
-        new_item = {
-            "source": incoming_data.get("source", "Auto Scanner"),
-            "symbol": incoming_data.get("symbol", "N/A"),
-            "name": incoming_data.get("name", "غير محدد"),
-            "price": incoming_data.get("price", "0.00"),
-            "demand": incoming_data.get("demand", "0"),
-            "supply": incoming_data.get("supply", "0"),
-            "liquidity": incoming_data.get("liquidity", "عادية"),
-            "analysis": incoming_data.get("analysis", "تحديث آلي مباشر"),
-            "news": incoming_data.get("news", "أخبار فورية مرصودة."),
-            "market": incoming_data.get("market", "US")
-        }
-        scanner_live_signals.append(new_item)
-        if not any(a['symbol'] == new_item['symbol'] for a in all_assets_database):
-            all_assets_database.append(new_item)
-            
+        symbol = incoming_data.get("symbol", "N/A")
+        name = incoming_data.get("name", "غير محدد")
+        price = incoming_data.get("price", "0.00")
+        demand = incoming_data.get("demand", "0")
+        supply = incoming_data.get("supply", "0")
+        liquidity = incoming_data.get("liquidity", "عادية")
+        analysis = incoming_data.get("analysis", "تحديث آلي مباشر")
+        news = incoming_data.get("news", "أخبار فورية مرصودة.")
+        market = incoming_data.get("market", "US")
+        source = incoming_data.get("source", "Auto Scanner")
+
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT OR REPLACE INTO assets (symbol, name, price, demand, supply, liquidity, analysis, news, market, source)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (symbol, name, price, demand, supply, liquidity, analysis, news, market, source))
+        conn.commit()
+        conn.close()
+        
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "error"}), 400
 
