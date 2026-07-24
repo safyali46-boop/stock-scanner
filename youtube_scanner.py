@@ -1,24 +1,23 @@
 import requests
 
-# رابط السيرفر الخاص بك على ريلواي
 WEBHOOK_URL = "https://stock-scanner-production-dd80.up.railway.app/api/webhook-update"
 
 def fetch_channel_stocks():
-    # جلب التوصيات والتحليلات المحدثة من قنوات أركان وزيندو
+    # البيانات الأصلية (الاسكنر وسهم دايس)
     stocks_found = [
         {
-            "symbol": "ARKAN", 
-            "name": "توصية قناة أركان", 
-            "price": "متابعة", 
-            "signal": "إشارة إيجابية جديدة", 
-            "source": "قناة أركان"
+            "symbol": "DICE", 
+            "name": "دايس للملابس الجاهزة", 
+            "price": "2.05", 
+            "signal": "شراء / متابعة", 
+            "source": "الاسكنر العام"
         },
         {
-            "symbol": "ZENDO", 
-            "name": "توصية قناة زيندو", 
-            "price": "متابعة", 
-            "signal": "فرصة مقترحة بالسوق", 
-            "source": "قناة زيندو"
+            "symbol": "SCANNER", 
+            "name": "إيدو اسكنر السوق", 
+            "price": "مباشر", 
+            "signal": "تحديث إيجابي", 
+            "source": "إيدو اسكنر"
         }
     ]
     
