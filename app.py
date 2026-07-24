@@ -10,7 +10,6 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # جدول الأصول والأسهم والسكنر
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS assets (
             symbol TEXT PRIMARY KEY,
@@ -26,7 +25,6 @@ def init_db():
         )
     ''')
     
-    # جدول المستخدمين لتسجيل الدخول بالإيميل أو الهاتف + الباسورد
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,12 +33,10 @@ def init_db():
         )
     ''')
     
-    # حساب افتراضي اولي للتجربة (يمكنك التسجيل بحساب جديد مباشرة)
     cursor.execute('''
         INSERT OR IGNORE INTO users (identifier, password) VALUES (?, ?)
     ''', ("admin@trading.com", "123456"))
 
-    # قائمة الأسهم الأمريكية والمصرية والعملات الموسعة
     default_data = [
         ("NIO", "نيو للسيارات الكهربائية", "5.40", "45K", "15K", "عالية", "ارتداد من دعم قاع السنوي مع تدفق سيولة.", "نيو تعلن عن زيادة في تسليمات السيارات.", "US", "Assets"),
         ("SIRI", "سيريوس إكس إم", "3.20", "20K", "8K", "متوسطة", "استقرار عرضي وتجميع عند الدعم.", "أخبار حول إعادة هيكلة الأسهم.", "US", "Assets"),
@@ -181,7 +177,7 @@ INDEX_HTML = """
     <div class="header-flex">
         <div>
             <h1>منصة التداول المتكاملة</h1>
-            <p class="subtitle">السكنر اللحظي، الأسهم الأمريكية والمصرية، والعملات مع بحث فوري شامل</p>
+            <p class="subtitle">السكنر اللحظي (ناقل السكنرات الخارجية)، الأسهم، والعملات</p>
         </div>
         <a href="/logout"><button class="logout-btn">تسجيل الخروج</button></a>
     </div>
@@ -191,13 +187,13 @@ INDEX_HTML = """
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 السكنر اللحظي</button>
+        <button class="tab-btn active" onclick="switchTab('scanner', this)">📡 السكنر اللحظي (السكنرات الخارجية)</button>
         <button class="tab-btn" onclick="switchTab('us-stocks', this)">🇺🇸 الأسهم (أمريكية ومصرية)</button>
         <button class="tab-btn" onclick="switchTab('currencies', this)">💱 العملات والسيولة</button>
     </div>
 
     <div id="scanner" class="section-content active">
-        <h3 style="color: #38bdf8;">إشارات السكنر اللحظي (تحديث آلي)</h3>
+        <h3 style="color: #38bdf8;">إشارات السكنر اللحظي (مستقبلة من السكنرات الخارجية)</h3>
         <table>
             <thead>
                 <tr>
@@ -286,7 +282,7 @@ INDEX_HTML = """
         data.forEach((item) => {
             if (item.market !== 'Forex') {
                 scannerTbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
-                    <td><span class="badge">${item.source || 'Scanner'}</span></td>
+                    <td><span class="badge">${item.source || 'External Scanner'}</span></td>
                     <td><b>${item.symbol}</b></td>
                     <td>${item.name}</td>
                     <td>${item.price}</td>
@@ -315,7 +311,7 @@ INDEX_HTML = """
             }
         });
 
-        if (!hasScanner) scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد إشارات في السكنر.</td></tr>';
+        if (!hasScanner) scannerTbody.innerHTML = '<tr><td colspan="8">لا توجد إشارات واردة من السكنرات الخارجية.</td></tr>';
         if (!hasStocks) stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد أسهم مطابقة.</p>';
         if (!hasForex) forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد عملات مطابقة.</p>';
     }
@@ -449,10 +445,10 @@ def webhook_update():
         demand = incoming_data.get("demand", "0")
         supply = incoming_data.get("supply", "0")
         liquidity = incoming_data.get("liquidity", "عادية")
-        analysis = incoming_data.get("analysis", "تحديث آلي مباشر")
-        news = incoming_data.get("news", "أخبار فورية مرصودة.")
+        analysis = incoming_data.get("analysis", "إشارة واردة من سكنر خارجي")
+        news = incoming_data.get("news", "تحديث فورى مرصد.")
         market = incoming_data.get("market", "US")
-        source = incoming_data.get("source", "Auto Scanner")
+        source = incoming_data.get("source", "External Scanner")
 
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
