@@ -3,7 +3,6 @@ import os
 
 app = Flask(__name__)
 
-# صفحة الواجهة الرئيسية
 INDEX_HTML = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -100,14 +99,12 @@ def market_data():
     market = request.args.get('market', 'المصرية')
     query = request.args.get('q', '').lower()
     
-    # بيانات تجريبية (أو بيانات السكنر بتاعتك)
     mock_data = [
         {"symbol": "AAPL", "name": "أبل", "price": "180.5", "change": "2.4", "analysis": "إيجابي قوي"},
         {"symbol": "TSLA", "name": "تسلا", "price": "210.0", "change": "1.8", "analysis": "حيادي"},
         {"symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "change": "3.1", "analysis": "فرصة شراء"}
     ]
     
-    # فلترة بناءً على البحث
     filtered = [
         item for item in mock_data 
         if query in item['symbol'].lower() or query in item['name'].lower()
