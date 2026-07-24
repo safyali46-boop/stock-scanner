@@ -1,8 +1,9 @@
-from flask import Flask, jsonify, request, render_template_string, make_response
+from flask import Flask, jsonify, request, render_template_string, session, redirect, url_for
 import sqlite3
 import os
 
 app = Flask(__name__)
+app.secret_key = "trading_platform_secret_key"
 DB_NAME = "database.db"
 
 def init_db():
@@ -37,6 +38,38 @@ def init_db():
     conn.close()
 
 init_db()
+
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - منصة التداول</title>
+    <style>
+        body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; direction: rtl; }
+        .login-card { background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); width: 100%; max-width: 400px; border: 1px solid #334155; text-align: center; }
+        h2 { color: #38bdf8; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 8px; box-sizing: border-box; outline: none; font-size: 15px; }
+        button { width: 100%; background: #0284c7; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #0369a1; }
+        .error { color: #ef4444; font-size: 13px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>تسجيل الدخول للمنصة</h2>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST">
+            <input type="password" name="password" placeholder="أدخل كلمة المرور..." required>
+            <button type="submit">دخول</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
 
 INDEX_HTML = """
 <!DOCTYPE html>
@@ -251,8 +284,22 @@ INDEX_HTML = """
 </html>
 """
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == "123456": # الباسورد الافتراضي، تقدر تغيره لأي كلمة سر تعجبك
+            session['logged_in'] = True
+            return redirect(url_for('home'))
+        else:
+            error = "كلمة المرور غير صحيحة، حاول مرة أخرى."
+    return render_template_string(LOGIN_HTML, error=error)
+
 @app.route('/')
 def home():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
     return render_template_string(INDEX_HTML)
 
 @app.route('/manifest.json')
