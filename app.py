@@ -13,10 +13,20 @@ def home():
 def webhook_update():
     data = request.json
     if data:
-        scanner_results.insert(0, data)
-        if len(scanner_results) > 50:
+        # لو البيانات جايّة على هيئة لستة (مجموعة أسهم مع بعض)
+        if isinstance(data, list):
+            for item in data:
+                scanner_results.insert(0, item)
+        # لو البيانات جايّة سهم واحد مفرد
+        else:
+            scanner_results.insert(0, data)
+            
+        # الحفاظ على أقصى حد 50 عنصر عشان الذاكرة
+        while len(scanner_results) > 50:
             scanner_results.pop()
-        return jsonify({"status": "success"}), 200
+            
+        return jsonify({"status": "success", "count": len(scanner_results)}), 200
+        
     return jsonify({"status": "error"}), 400
 
 @app.route('/scanner')
