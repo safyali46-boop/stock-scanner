@@ -3,7 +3,8 @@ import os
 
 app = Flask(__name__)
 
-live_scanner_data = [
+# قواعد البيانات منفصلة لكل قسم لتشغيل السكنر والبحث بكفاءة تامة
+scanner_live_signals = [
     {
         "source": "Auto Scanner", 
         "symbol": "NVDA", 
@@ -13,33 +14,15 @@ live_scanner_data = [
         "supply": "20K", 
         "liquidity": "عالية جداً", 
         "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.",
-        "news": "إنيديا تعلن عن رقائق جديدة بمعمارية متطورة وسط طلب قياسي.",
+        "news": "إنيديا تعلن عن رقائق جديدة بمعمارية متطورة.",
         "market": "US"
-    },
-    {
-        "source": "EGX Live", 
-        "symbol": "DICE", 
-        "name": "دايس للصناعات", 
-        "price": "2.05", 
-        "demand": "15K", 
-        "supply": "5K", 
-        "liquidity": "متوسطة", 
-        "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند الدعم.",
-        "news": "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.",
-        "market": "EG"
-    },
-    {
-        "source": "Forex Bot", 
-        "symbol": "EURUSD", 
-        "name": "اليورو دولار", 
-        "price": "1.0850", 
-        "demand": "100K", 
-        "supply": "90K", 
-        "liquidity": "عالية", 
-        "analysis": "تذبذب عرضي حول مستويات الدعم بحدود السيولة.",
-        "news": "الأسواق تترقب بيانات التضخم وتأثيرها على زوج اليورو دولار.",
-        "market": "Forex"
     }
+]
+
+all_assets_database = [
+    {"symbol": "NVDA", "name": "إنيديا", "price": "130.20", "demand": "50K", "supply": "20K", "liquidity": "عالية جداً", "analysis": "اختراق قمة الجلسة وطلب مؤسسي قوي.", "news": "إنيديا تعلن عن رقائق جديدة.", "market": "US"},
+    {"symbol": "DICE", "name": "دايس للصناعات", "price": "2.05", "demand": "15K", "supply": "5K", "liquidity": "متوسطة", "analysis": "نشاط ملحوظ بالسوق المصري وعروض شراء عند الدعم.", "news": "تداولات نشطة على سهم دايس وسط ترقب لنتائج الأعمال.", "market": "EG"},
+    {"symbol": "EURUSD", "name": "اليورو دولار", "price": "1.0850", "demand": "100K", "supply": "90K", "liquidity": "عالية", "analysis": "تذبذب عرضي حول مستويات الدعم.", "news": "الأسواق تترقب بيانات التضخم الأمريكية.", "market": "Forex"}
 ]
 
 INDEX_HTML = """
@@ -85,7 +68,7 @@ INDEX_HTML = """
     <p class="subtitle">السكنر اللحظي، الأسهم، والعملات مع محرك البحث الشامل</p>
     
     <div class="search-box">
-        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم، الاسم، أو العملة (مثال: NVDA, دايс, EURUSD)..." oninput="filterData()">
+        <input type="text" id="globalSearch" placeholder="ابحث برمز السهم، الاسم، أو العملة (مثال: NVDA, دايس, EURUSD)..." oninput="filterData()">
     </div>
 
     <div class="nav-tabs">
@@ -94,8 +77,9 @@ INDEX_HTML = """
         <button class="tab-btn" onclick="switchTab('currencies', this)">💱 العملات والسيولة</button>
     </div>
 
+    <!-- قسم السكنر -->
     <div id="scanner" class="section-content active">
-        <h3 style="color: #38bdf8;">إشارات السكنر والأسواق المباشرة</h3>
+        <h3 style="color: #38bdf8;">إشارات السكنر اللحظي (تحديث آلي)</h3>
         <table>
             <thead>
                 <tr>
@@ -109,15 +93,17 @@ INDEX_HTML = """
                     <th>التحليل السريع</th>
                 </tr>
             </thead>
-            <tbody id="tableBody"></tbody>
+            <tbody id="scannerTableBody"></tbody>
         </table>
     </div>
 
+    <!-- قسم الأسهم -->
     <div id="us-stocks" class="section-content">
         <h3 style="color: #38bdf8;">قائمة الأسهم والشروط المعتمدة</h3>
         <div id="stocksList"></div>
     </div>
 
+    <!-- قسم العملات -->
     <div id="currencies" class="section-content">
         <h3 style="color: #38bdf8;">متابعة العملات والأسواق العالمية</h3>
         <div id="forexList"></div>
@@ -125,6 +111,7 @@ INDEX_HTML = """
 
 </div>
 
+<!-- نافذة التفاصيل والأخبار -->
 <div id="stockModal" class="modal">
     <div class="modal-content">
         <button class="close-btn" onclick="closeModal()">إغلاق</button>
@@ -139,7 +126,8 @@ INDEX_HTML = """
 </div>
 
 <script>
-    let globalData = [];
+    let scannerData = [];
+    let assetsData = [];
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
@@ -160,43 +148,37 @@ INDEX_HTML = """
 
     let lastCount = 0;
 
-    async function fetchLiveScanner() {
+    async function fetchAppData() {
         try {
-            const response = await fetch('/api/live-data');
-            globalData = await response.json();
-            renderAllSections(globalData);
+            const response = await fetch('/api/app-data');
+            const data = await response.json();
+            scannerData = data.scanner;
+            assetsData = data.assets;
 
-            if (globalData.length > lastCount && lastCount > 0) {
-                const latest = globalData[globalData.length - 1];
+            renderScanner(scannerData);
+            renderAssets(assetsData);
+
+            if (scannerData.length > lastCount && lastCount > 0) {
+                const latest = scannerData[scannerData.length - 1];
                 speakStock(latest.symbol, latest.name);
             }
-            lastCount = globalData.length;
+            lastCount = scannerData.length;
 
         } catch (error) {
-            console.error('خطأ في الاتصال:', error);
+            console.error('خطأ في جلب البيانات:', error);
         }
     }
 
-    function renderAllSections(data) {
-        const tbody = document.getElementById('tableBody');
+    function renderScanner(data) {
+        const tbody = document.getElementById('scannerTableBody');
         tbody.innerHTML = '';
-        
-        const stocksDiv = document.getElementById('stocksList');
-        stocksDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المتاحة:</h4>';
-        
-        const forexDiv = document.getElementById('forexList');
-        forexDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">أزواج العملات:</h4>';
-
         if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8">لا توجد بيانات مطابقة للبحث...</td></tr>';
-            stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج مطابقة...</p>';
-            forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد نتائج مطابقة...</p>';
+            tbody.innerHTML = '<tr><td colspan="8">في انتظار ورود إشارات من السكنر...</td></tr>';
             return;
         }
-
         data.forEach((item) => {
-            const row = `<tr onclick='openModal(${JSON.stringify(item)})'>
-                <td><span class="badge">${item.source}</span></td>
+            tbody.innerHTML += `<tr onclick='openModal(${JSON.stringify(item)})'>
+                <td><span class="badge">${item.source || 'Scanner'}</span></td>
                 <td><b>${item.symbol}</b></td>
                 <td>${item.name}</td>
                 <td>${item.price}</td>
@@ -205,8 +187,22 @@ INDEX_HTML = """
                 <td><b>${item.liquidity}</b></td>
                 <td>${item.analysis}</td>
             </tr>`;
-            tbody.innerHTML += row;
+        });
+    }
 
+    function renderAssets(data) {
+        const stocksDiv = document.getElementById('stocksList');
+        const forexDiv = document.getElementById('forexList');
+        stocksDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">الأسهم المتاحة:</h4>';
+        forexDiv.innerHTML = '<h4 style="color: #22c55e; margin-top:0;">أزواج العملات:</h4>';
+
+        if(!data || data.length === 0) {
+            stocksDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد بيانات...</p>';
+            forexDiv.innerHTML += '<p style="color: #94a3b8;">لا توجد بيانات...</p>';
+            return;
+        }
+
+        data.forEach((item) => {
             const cardHTML = `<div class="card" onclick='openModal(${JSON.stringify(item)})'>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <b style="color: #38bdf8; font-size: 16px;">${item.symbol} - ${item.name}</b>
@@ -226,15 +222,18 @@ INDEX_HTML = """
     function filterData() {
         const query = document.getElementById('globalSearch').value.toLowerCase().trim();
         if (!query) {
-            renderAllSections(globalData);
+            renderScanner(scannerData);
+            renderAssets(assetsData);
             return;
         }
-        const filtered = globalData.filter(item => 
-            item.symbol.toLowerCase().includes(query) || 
-            item.name.toLowerCase().includes(query) ||
-            item.market.toLowerCase().includes(query)
+        const filteredScanner = scannerData.filter(item => 
+            item.symbol.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)
         );
-        renderAllSections(filtered);
+        const filteredAssets = assetsData.filter(item => 
+            item.symbol.toLowerCase().includes(query) || item.name.toLowerCase().includes(query)
+        );
+        renderScanner(filteredScanner);
+        renderAssets(filteredAssets);
     }
 
     function openModal(item) {
@@ -250,8 +249,8 @@ INDEX_HTML = """
         document.getElementById('stockModal').style.display = 'none';
     }
 
-    setInterval(fetchLiveScanner, 3000);
-    fetchLiveScanner();
+    setInterval(fetchAppData, 3000);
+    fetchAppData();
 </script>
 
 </body>
@@ -262,15 +261,18 @@ INDEX_HTML = """
 def home():
     return render_template_string(INDEX_HTML)
 
-@app.route('/api/live-data', methods=['GET'])
-def get_live_data():
-    return jsonify(live_scanner_data)
+@app.route('/api/app-data', methods=['GET'])
+def get_app_data():
+    return jsonify({
+        "scanner": scanner_live_signals,
+        "assets": all_assets_database
+    })
 
 @app.route('/api/webhook-update', methods=['POST'])
 def webhook_update():
     incoming_data = request.json
     if incoming_data:
-        live_scanner_data.append({
+        new_item = {
             "source": incoming_data.get("source", "Auto Scanner"),
             "symbol": incoming_data.get("symbol", "N/A"),
             "name": incoming_data.get("name", "غير محدد"),
@@ -278,10 +280,15 @@ def webhook_update():
             "demand": incoming_data.get("demand", "0"),
             "supply": incoming_data.get("supply", "0"),
             "liquidity": incoming_data.get("liquidity", "عادية"),
-            "analysis": incoming_data.get("analysis", "تحديث آلي مباشر مع الشروط"),
+            "analysis": incoming_data.get("analysis", "تحديث آلي مباشر"),
             "news": incoming_data.get("news", "أخبار فورية مرصودة."),
             "market": incoming_data.get("market", "US")
-        })
+        }
+        scanner_live_signals.append(new_item)
+        # إضافتها لقاعدة بيانات الأصول أيضاً لتظهر في البحث فوراً
+        if not any(a['symbol'] == new_item['symbol'] for a in all_assets_database):
+            all_assets_database.append(new_item)
+            
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "error"}), 400
 
