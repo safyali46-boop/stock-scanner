@@ -21,12 +21,12 @@ def fetch_smallcaps_stocks():
         }
     ]
     
-    for stock in stocks_found:
-        try:
-            response = requests.post(WEBHOOK_URL, json=stock)
-            print(f"تم إرسال سهم {stock['symbol']}: {response.status_code}")
-        except Exception as e:
-            print(f"خطأ في الإرسال: {e}")
+    try:
+        # إرسال اللستة كاملة دفعة واحدة بدل سهم سهم
+        response = requests.post(WEBHOOK_URL, json=stocks_found)
+        print(f"تم إرسال البيانات بنجاح: {response.status_code}")
+    except Exception as e:
+        print(f"خطأ في الإرسال: {e}")
 
 if __name__ == "__main__":
     fetch_smallcaps_stocks()
